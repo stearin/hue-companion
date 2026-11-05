@@ -619,9 +619,9 @@ public class HueBridgeService : IHueBridgeService
         {
             foreach (var ctPalette in scene.Palette.ColorTemperature.Take(4))
             {
-                if (ctPalette.Mirek != null)
+                if (ctPalette.ColorTemperature.Mirek != null)
                 {
-                    colors.Add(Models.HueColor.FromMirek((int)ctPalette.Mirek));
+                    colors.Add(Models.HueColor.FromMirek((int)ctPalette.ColorTemperature.Mirek));
                 }
             }
         }
@@ -702,11 +702,11 @@ public class HueBridgeService : IHueBridgeService
                     _ => Models.PowerOnPreset.LastOnState
                 };
 
-                if (lightData.PowerUp.Dimming?.Brightness != null)
-                    model.PowerOnBrightness = lightData.PowerUp.Dimming.Brightness / 100.0;
+                if (lightData.PowerUp?.Dimming?.Dimming?.Brightness != null)
+                    model.PowerOnBrightness = lightData.PowerUp.Dimming.Dimming.Brightness / 100.0;
 
-                if (lightData.PowerUp.Color?.Xy != null)
-                    model.PowerOnColor = new HueColor(lightData.PowerUp.Color.Xy.X, lightData.PowerUp.Color.Xy.Y);
+                if (lightData.PowerUp?.Color?.Color?.Xy != null)
+                    model.PowerOnColor = new HueColor(lightData.PowerUp.Color.Color.Xy.X, lightData.PowerUp.Color.Color.Xy.Y);
             }
 
             return Result<LightModel>.Success(model);
@@ -854,7 +854,7 @@ public class HueBridgeService : IHueBridgeService
 
             var command = new UpdateLight
             {
-                Effects = new HueApi.Models.Effects { Effect = effectEnum }
+                EffectsV2 = new HueApi.Models.EffectsV2 { Action = new() { Effect = effectEnum } }
             };
 
             // Add brightness if specified
@@ -1054,8 +1054,9 @@ public class HueBridgeService : IHueBridgeService
 
         try
         {
-            var request = new BaseResourceRequest
+            var request = new CreateUpdateRoom
             {
+                Children = [],
                 Metadata = new Metadata { Name = name, Archetype = RoomArchetypeToString(archetype) }
             };
             var result = await _hueApi.Room.CreateAsync(request);
@@ -1083,7 +1084,7 @@ public class HueBridgeService : IHueBridgeService
 
         try
         {
-            var request = new BaseResourceRequest
+            var request = new CreateUpdateRoom
             {
                 Metadata = new Metadata { Name = name, Archetype = RoomArchetypeToString(archetype) }
             };
@@ -1437,14 +1438,20 @@ public class HueBridgeService : IHueBridgeService
                     Mode = HueApi.Models.PowerUpOnMode.on,
                     On = new HueApi.Models.On { IsOn = true }
                 },
-                Dimming = new HueApi.Models.Dimming { Brightness = brightness * 100.0 }
+                
+                Dimming = new HueApi.Models.PowerUpDimming
+                {
+                    Dimming = new Dimming { Brightness = brightness * 100.0 },
+                    Mode = PowerUpDimmingMode.dimming
+                }
             };
 
             if (color != null)
             {
-                powerUp.Color = new HueApi.Models.Color
+                powerUp.Color = new HueApi.Models.PowerUpColor
                 {
-                    Xy = new HueApi.Models.XyPosition { X = color.X, Y = color.Y }
+                    Color = new Color { Xy = new HueApi.Models.XyPosition { X = color.X, Y = color.Y } },
+                    Mode = PowerUpColorMode.color
                 };
             }
 

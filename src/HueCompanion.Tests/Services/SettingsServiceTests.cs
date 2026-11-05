@@ -74,7 +74,7 @@ public class SettingsServiceTests : IDisposable
     {
         // Arrange - write invalid JSON
         var settingsPath = Path.Combine(_testDirectory, "settings.json");
-        await File.WriteAllTextAsync(settingsPath, "{ invalid json }");
+        await File.WriteAllTextAsync(settingsPath, "{ invalid json }", TestContext.Current.CancellationToken);
 
         // Act
         await _service.LoadAsync();

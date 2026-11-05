@@ -138,13 +138,13 @@ public class AnimationEngineTests : IDisposable
         _engine.Start();
 
         // Wait for the short animation to complete plus buffer
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         // All 4 lights should have received at least one color call
         foreach (var lightId in _lights)
         {
             _bridgeMock.Verify(b =>
-                b.SetLightColorAndBrightnessAsync(lightId, It.IsAny<HueColor>(), It.IsAny<double>()),
+                b.SetLightColorAndBrightnessAsync(lightId, It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
                 Times.AtLeastOnce());
         }
     }
@@ -166,22 +166,22 @@ public class AnimationEngineTests : IDisposable
         _engine = new AnimationEngine(_bridgeMock.Object, scene, _lights);
         _engine.Start();
 
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         // Lights at index 0 and 2 should be targeted
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[0], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[0], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.AtLeastOnce());
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[2], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[2], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.AtLeastOnce());
 
         // Lights at index 1 and 3 should NOT be targeted
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[1], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[1], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.Never());
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[3], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[3], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.Never());
     }
 
@@ -201,22 +201,22 @@ public class AnimationEngineTests : IDisposable
         _engine = new AnimationEngine(_bridgeMock.Object, scene, _lights);
         _engine.Start();
 
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         // Even-indexed lights (0, 2) should be targeted
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[0], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[0], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.AtLeastOnce());
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[2], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[2], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.AtLeastOnce());
 
         // Odd-indexed lights (1, 3) should NOT be targeted
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[1], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[1], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.Never());
         _bridgeMock.Verify(b =>
-            b.SetLightColorAndBrightnessAsync(_lights[3], It.IsAny<HueColor>(), It.IsAny<double>()),
+            b.SetLightColorAndBrightnessAsync(_lights[3], It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
             Times.Never());
     }
 
@@ -252,7 +252,7 @@ public class AnimationEngineTests : IDisposable
             .Returns(Task.CompletedTask);
 
         _engine.Start();
-        await Task.Delay(400);
+        await Task.Delay(400, TestContext.Current.CancellationToken);
 
         // Should have made multiple interpolation calls
         capturedColors.Should().HaveCountGreaterThan(1);
@@ -279,12 +279,12 @@ public class AnimationEngineTests : IDisposable
         _engine.Start();
 
         // Wait for animation to complete
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         var callCountAfterComplete = _bridgeMock.Invocations.Count;
 
         // Wait more — no additional calls should happen
-        await Task.Delay(200);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         _bridgeMock.Invocations.Count.Should().Be(callCountAfterComplete);
     }
@@ -315,7 +315,7 @@ public class AnimationEngineTests : IDisposable
         _engine.Start();
 
         // Give time for effects to be applied
-        await Task.Delay(200);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         foreach (var lightId in _lights)
         {
@@ -347,12 +347,12 @@ public class AnimationEngineTests : IDisposable
         _engine = new AnimationEngine(_bridgeMock.Object, scene, singleLight);
 
         _engine.Start();
-        await Task.Delay(100); // Let it run briefly
+        await Task.Delay(100, TestContext.Current.CancellationToken); // Let it run briefly
 
         await _engine.StopAsync(); // Should not hang
 
         var callCountAfterStop = _bridgeMock.Invocations.Count;
-        await Task.Delay(200);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         // No new calls after stop
         _bridgeMock.Invocations.Count.Should().Be(callCountAfterStop);

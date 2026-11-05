@@ -255,7 +255,7 @@ public class SceneStorageServiceTests : IDisposable
     {
         // Arrange - Write invalid JSON
         var invalidPath = Path.Combine(_testDirectory, "invalid.json");
-        await File.WriteAllTextAsync(invalidPath, "{ not valid json }");
+        await File.WriteAllTextAsync(invalidPath, "{ not valid json }", TestContext.Current.CancellationToken);
 
         // Act
         var result = await _service.LoadSceneAsync(invalidPath);
