@@ -1,6 +1,8 @@
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../DEVELOPMENT.md) and [reconciled planning state](../../.planning/STATE.md) before making changes.
+
 # Remaining Scene Features - Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Original execution note (historical):** This plan was written for `superpowers:executing-plans`. It is not a current instruction to rerun completed work.
 
 **Goal:** Complete save-as-scene, static scene editing, scene assignment, animated previews, and expanded library.
 

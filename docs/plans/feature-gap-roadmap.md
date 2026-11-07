@@ -1,6 +1,6 @@
 # Feature Gap Roadmap
 
-A prioritized plan to bring Hue Companion to feature parity with the official Hue app. Organized by priority tier, with implementation details for each feature.
+A feature backlog reconciled against source on 2026-11-07. Checked items have implementation evidence, not a new real-device acceptance result. Unchecked items remain proposals; confirm current interfaces before implementing them. The sections below preserve the original priority tiers. Current limitations are tracked in [CONCERNS.md](../../.planning/codebase/CONCERNS.md).
 
 ---
 
@@ -78,49 +78,25 @@ The official Hue app's automation system covers timers, wake/sleep routines, and
 
 ### 2. Room & Zone Management (CRUD)
 
-Currently rooms and zones are read-only. Users need to manage these from the app.
+Room and zone creation, renaming, archetype changes, and deletion are implemented. Dialogs are built in page code-behind rather than separate `CreateRoomDialog.xaml` / `EditRoomDialog.xaml` files.
 
 #### 2.1 Bridge Service Methods
 
-- [ ] `CreateRoomAsync(string name, RoomArchetype archetype)` — POST /resource/room
-- [ ] `UpdateRoomAsync(Guid id, string name, RoomArchetype archetype)` — PUT /resource/room/{id}
-- [ ] `DeleteRoomAsync(Guid id)` — DELETE /resource/room/{id}
-- [ ] `AssignLightToRoomAsync(Guid roomId, Guid lightId)` — update room children
-- [ ] `RemoveLightFromRoomAsync(Guid roomId, Guid lightId)` — update room children
-- [ ] `CreateZoneAsync(string name, RoomArchetype archetype)` — POST /resource/zone
-- [ ] `UpdateZoneAsync(Guid id, string name, RoomArchetype archetype)` — PUT /resource/zone/{id}
-- [ ] `DeleteZoneAsync(Guid id)` — DELETE /resource/zone/{id}
-- [ ] `GetUnassignedLightsAsync()` — lights not in any room
+- [x] `CreateRoomAsync`, `UpdateRoomAsync`, `DeleteRoomAsync`
+- [x] `CreateZoneAsync`, `UpdateZoneAsync`, `DeleteZoneAsync`
+- [x] `MoveDeviceToRoomAsync` — move a device and its lights between rooms
+- [x] `SetZoneChildrenAsync`, `AddLightToZoneAsync`, `RemoveLightFromZoneAsync`
+- [ ] Dedicated unassigned-light query/workflow
 
-#### 2.2 Create Room/Zone Dialog
+#### 2.2 Existing UI
 
-- [ ] `CreateRoomDialog.xaml` — ContentDialog
-- [ ] Name text input with validation
-- [ ] Archetype picker (grid of icons matching Hue archetypes)
-- [ ] Light selector: checkboxes for unassigned lights
-- [ ] Room vs Zone toggle
-
-#### 2.3 Edit Room/Zone
-
-- [ ] Edit button on RoomDetailPage header (settings gear icon)
-- [ ] `EditRoomDialog.xaml` — pre-populated ContentDialog
-- [ ] Rename, change archetype
-- [ ] Add/remove lights with drag or checkbox UI
-- [ ] Show unassigned lights available to add
-
-#### 2.4 Delete Room/Zone
-
-- [ ] Delete option in room context menu / edit dialog
-- [ ] Confirmation dialog with warning about light assignment
-- [ ] Navigate back to dashboard after deletion
-- [ ] Update nav items after room/zone CRUD operations
-
-#### 2.5 Navigation Updates
-
-- [ ] "Add Room" button on DashboardPage
-- [ ] "Add Zone" button on ZonesPage
-- [ ] Refresh nav items after create/delete operations
-- [ ] Update `MainWindow.xaml.cs` nav item list dynamically
+- [x] Dashboard creation dialog with name, room/zone selector, and archetype picker
+- [x] RoomDetailPage rename and change-type dialogs for rooms/zones
+- [x] Deletion confirmation and navigation back to dashboard
+- [x] Room-detail device move handler
+- [ ] Light selection during room/zone creation
+- [ ] Verify navigation refresh across every create/delete/rename path
+- [ ] Dedicated zone-list creation affordance, if still desired
 
 ---
 
@@ -232,40 +208,30 @@ Entertainment features require the Hue Entertainment Streaming API (DTLS/UDP), w
 
 Configure what lights do when physical power is restored.
 
-#### 5.1 Bridge Service Methods
+#### 5.1 Implemented behavior
 
-- [ ] `GetPowerOnBehaviorAsync(Guid lightId)` — read powerup preset
-- [ ] `SetPowerOnBehaviorAsync(Guid lightId, PowerOnPreset preset)` — set behavior
-- [ ] `PowerOnPreset` enum — LastState, DefaultColor, CustomColor, SafetyBright
-
-#### 5.2 UI Integration
-
-- [ ] Add "Power-on Behavior" section to LightDetailPage
-- [ ] Preset selector: Last state, Default (warm white), Custom, Safety (bright)
-- [ ] Custom: color picker + brightness slider for power-on state
-- [ ] Preview of what the light will do
-- [ ] Batch apply: set power-on behavior for all lights in a room
+- [x] `LightModel` power-on configuration populated from bridge data
+- [x] `SetPowerOnPresetAsync(Guid lightId, PowerOnPreset preset)`
+- [x] `SetPowerOnCustomAsync(Guid lightId, double brightness, HueColor? color)`
+- [x] Presets: `LastOnState`, `Safety`, `PowerFail`, `Custom`
+- [x] LightDetailPage preset selector, custom brightness, and use-current-color action
+- [ ] Dedicated preview of the power-restored state
+- [ ] Batch apply to all lights in a room
 
 ---
 
 ### 6. Light Configuration
 
-Rename lights and manage their room assignment from the app.
+Renaming, identification, product details, and room moves have implementation paths.
 
-#### 6.1 Bridge Service Methods
+#### 6.1 Implemented methods and UI
 
-- [ ] `RenameLightAsync(Guid lightId, string newName)` — PUT /resource/light/{id}
-- [ ] `GetLightCapabilitiesAsync(Guid lightId)` — color gamut, features
-- [ ] `IdentifyLightAsync(Guid lightId)` — blink the light to identify it
-
-#### 6.2 UI Integration
-
-- [ ] Add edit button to LightDetailPage header
-- [ ] `EditLightDialog.xaml` — rename, view capabilities
-- [ ] "Identify" button — blinks the physical light
-- [ ] Show light model info: product name, firmware version, capabilities
-- [ ] Room assignment: move light to a different room
-- [ ] Light capabilities display: color, color temperature ranges, max brightness
+- [x] `RenameLightAsync(Guid lightId, Guid deviceId, string newName)` — updates owner-device metadata
+- [x] `IdentifyLightAsync(Guid lightId)` and the LightDetailPage identify action
+- [x] Inline rename dialog in LightDetailPage
+- [x] Light model/product information in the detail view
+- [x] `MoveDeviceToRoomAsync` exposed through the room-detail light move handler
+- [ ] Dedicated capabilities API/display covering all gamut, temperature, and brightness limits
 
 ---
 
@@ -353,15 +319,15 @@ Export and import app configuration.
 
 #### 10.3 Scene Export/Import
 
-- [ ] Export animated scenes as shareable JSON files
-- [ ] Import animated scenes from file
+- [x] Export animated scenes as shareable JSON files — Scene Builder `ExportFile_Click`
+- [x] Import animated scenes from file — Scene Builder `ImportFile_Click`
 - [ ] Duplicate detection on import
 
 ---
 
 ## Implementation Order
 
-Recommended order based on user value and dependency chains:
+Original sequencing below is retained for context. Room/zone CRUD, light configuration, power-on behavior, and scene import/export now have implementations; prioritize their remaining unchecked work instead of recreating them:
 
 | Phase | Feature | Depends On |
 |-------|---------|------------|

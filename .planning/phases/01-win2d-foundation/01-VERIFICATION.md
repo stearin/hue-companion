@@ -13,6 +13,8 @@ human_verification:
     why_human: "Requires testing on physical high-DPI display or simulated scaling environment"
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 1: Win2D Foundation Verification Report
 
 **Phase Goal:** Timeline renders via Win2D CanvasControl with GPU acceleration and layered architecture

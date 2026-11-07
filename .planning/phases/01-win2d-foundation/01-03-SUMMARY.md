@@ -40,6 +40,8 @@ duration: 4min
 completed: 2026-01-20
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 1 Plan 3: Interactive Features Summary
 
 Win2D geometry-based hit testing restores all timeline interactions (keyframe selection, dragging, playhead scrub, keyframe creation)

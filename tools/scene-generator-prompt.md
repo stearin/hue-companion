@@ -68,9 +68,10 @@ Colors use CIE xy color space coordinates. Reference values:
   "eventPattern": EventPattern?,    // For "event" type
   "durationSeconds": number,        // Total duration (0 for infinite/events)
   "repeatMode": "once" | "loop" | "pingPong",
-  "priority": number,               // Higher = plays on top (1-10)
-  "effectSpeed": number?,           // For nativeEffect (0.0-1.0)
-  "effectBrightness": number?       // For nativeEffect (0.0-1.0)
+  "priority": number,               // Metadata; engine does not arbitrate overlapping animations
+  "effectSpeed": number?,           // Stored (0.0-1.0); not forwarded by engine native-effect playback
+  "effectBrightness": number?,      // Stored (0.0-1.0); not forwarded by engine native-effect playback
+  "eventPreset": string?            // Optional editor event preset identifier
 }
 ```
 
@@ -158,6 +159,8 @@ Built-in Hue effects. Use `name` field for effect type:
 - `"candle"` - Candle simulation
 - `"sparkle"` - Twinkling sparkle
 
+The application also lists `glisten`, `opal`, `prism`, `underwater`, `cosmos`, `sunbeam`, and `enchant`. Availability depends on the physical lights. Saved speed/brightness fields are not currently forwarded by `AnimationEngine.RunNativeEffectAsync`; use keyframes when explicit brightness changes are required.
+
 **Requirements:**
 - `keyframes` should be empty array `[]`
 - `durationSeconds` should be `0`
@@ -178,14 +181,12 @@ Built-in Hue effects. Use `name` field for effect type:
    - Dramatic contrast: Mix 0.1-0.2 with 0.8-1.0
    - Never leave lights at 0 brightness (use `isOn: false` instead)
 
-4. **Layering**: Combine keyframe (ambient) with event (accents) animations using priority:
-   - Priority 1: Base ambient animation
-   - Priority 2+: Event overlays
+4. **Concurrent animations**: The engine starts animations concurrently and does not use `priority` to resolve overlapping light writes. Prefer disjoint light subsets for independent animations. Keyframe + event examples can contend on the same lights; do not promise deterministic overlays.
 
 5. **Light Assignment**:
    - `all`: Every light follows the same pattern
    - `random` with `randomPercentage`: Good for events (e.g., 30% of lights flash)
-   - `alternating`: Creates wave/chase effects
+   - `alternating`: Selects every other light; it does not itself add a wave/chase phase offset
 
 ---
 

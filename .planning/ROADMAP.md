@@ -2,7 +2,7 @@
 
 ## Overview
 
-Scene Builder bug bash milestone. Two phases address color picker usability issues and interaction defaults discovered during v0.2 testing. Phase 5 delivers a redesigned color picker with temperature + saturation model ensuring all colors are realizable on Hue bulbs. Phase 6 changes snap-to-grid default for better first-use experience.
+Scene Builder bug bash planning milestone, reconciled against source on 2026-11-07. Phase 5 uses a hue/saturation picker constrained by a configured gamut; integration exists but several acceptance checks remain open. Phase 6 proposes changing the snap-to-grid default. This roadmap does not claim a release or completed physical-bulb validation.
 
 ## Phases
 
@@ -15,10 +15,10 @@ Scene Builder bug bash milestone. Two phases address color picker usability issu
 **Plans:** 4 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Consolidate XY-to-RGB conversions (fixes COLOR-01)
-- [ ] 05-02-PLAN.md — Create ColorGamut class with triangle math
-- [ ] 05-03-PLAN.md — Build GamutColorPicker custom control with Win2D
-- [ ] 05-04-PLAN.md — Integrate into SceneBuilderPage + fix positioning
+- [x] 05-01-PLAN.md — Consolidate XY-to-RGB conversions (implementation exists; COLOR-01 visual acceptance remains open)
+- [x] 05-02-PLAN.md — Create ColorGamut class with triangle math
+- [x] 05-03-PLAN.md — Build GamutColorPicker custom control with Win2D
+- [ ] 05-04-PLAN.md — Partially integrated: GamutColorPicker is in the editor side panel; popup positioning and acceptance verification remain open
 
 **Requirements:**
 - CPICK-01: Color picker uses hue ring with adaptive saturation limit per hue angle (no impossible selections)
@@ -57,12 +57,12 @@ Plans:
 
 | Phase | Status | Requirements |
 |-------|--------|--------------|
-| Phase 5: Color Picker Overhaul | Planned | 7 |
-| Phase 6: Interaction Polish | Pending | 1 |
+| Phase 5: Color Picker Overhaul | Implementation present; integration/acceptance incomplete | 7 |
+| Phase 6: Interaction Polish | Outstanding: snap still defaults to on | 1 |
 
 **Total Requirements:** 8
 **Mapped:** 8
-**Coverage:** 100%
+**Coverage:** 100% mapped to phases; this is not implementation or test coverage. See [REQUIREMENTS.md](REQUIREMENTS.md) for individual acceptance statuses.
 
 ---
 *Roadmap created: 2026-01-21*

@@ -38,6 +38,8 @@ duration: 3min
 completed: 2026-01-21
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 04 Plan 03: Color Picker Live Preview Summary
 
 **Removed debounce timer from color picker for real-time light preview during adjustment**

@@ -1,5 +1,7 @@
 # Project Milestones: Hue Companion
 
+The entries below retain historical delivery statistics. They are not current benchmarks or new release verification. Planning state was reconciled on 2026-11-07 in [STATE.md](STATE.md).
+
 ## v0.2 Scene Builder DAW Polish (Shipped: 2026-01-21)
 
 **Delivered:** Transformed the Scene Builder from functional to polished with GPU-accelerated rendering, DAW-style gradient color strips, hover states, accessibility compliance, and refined controls.
@@ -24,6 +26,6 @@
 
 **Git range:** `583b783` → `c60e220`
 
-**What's next:** TBD — run `/gsd:new-milestone` to define next focus
+**Open planning work:** v0.3 Scene Builder Bug Bash is partially implemented. See [STATE.md](STATE.md) for the source reconciliation and remaining acceptance work.
 
 ---

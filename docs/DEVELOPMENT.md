@@ -1,6 +1,6 @@
 # Development Workflow
 
-This document describes the complete versioning, testing, and release flow for HueCompanion.
+This document describes the repository’s development, testing, and release configuration, reviewed against source on 2026-11-07. Workflow configuration does not establish that a release or Store submission has succeeded.
 
 ## Overview
 
@@ -23,17 +23,23 @@ This document describes the complete versioning, testing, and release flow for H
 
 ### Build Commands
 
-```bash
-# Build (default platform)
-dotnet build src/HueCompanion/HueCompanion.csproj
+Run desktop commands from the repository root on Windows with the .NET SDK and WinUI/MSIX build tooling installed.
 
-# Build for specific architecture
+```powershell
+# Preferred development workflow
+.\hue.cmd dev
+.\hue.cmd dev -Restart
+.\hue.cmd dev -NoLaunch
+
+# Direct architecture-specific builds
 dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=x64
 dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=ARM64
 
-# Run the app
-dotnet run --project src/HueCompanion/HueCompanion.csproj
+# Build the separate bridge-control MCP executable
+dotnet build src/HueCompanion.Mcp/HueCompanion.Mcp.csproj
 ```
+
+For Visual Studio packaged debugging, use the `MsixPackage` launch profile described in [README.md](../README.md#build-from-command-line). Plain `dotnet run` is not the documented packaged deployment workflow. The website has a separate [npm workflow](../website/README.md).
 
 ### Project Structure
 
@@ -41,7 +47,8 @@ dotnet run --project src/HueCompanion/HueCompanion.csproj
 src/
 ├── HueCompanion/           # WinUI 3 App (views, controls, styles)
 ├── HueCompanion.Core/      # Business logic (models, viewmodels, services)
-└── HueCompanion.Tests/     # Unit tests (xUnit + FluentAssertions)
+├── HueCompanion.Mcp/       # Bridge-control MCP host and tools
+└── HueCompanion.Tests/     # xUnit v3 tests for Core and MCP helpers
 ```
 
 ## 2. Testing
@@ -66,14 +73,18 @@ dotnet test src/HueCompanion.Tests --collect:"XPlat Code Coverage" --results-dir
 
 | Category | Location | Description |
 |----------|----------|-------------|
-| **Models** | `Tests/Models/` | Pure logic (HueColor, Result<T>) |
-| **Services** | `Tests/Services/` | Persistence (SettingsService, SceneStorageService) |
+| **Models** | `src/HueCompanion.Tests/Models/` | Color conversion and Result types |
+| **Services** | `src/HueCompanion.Tests/Services/` | Storage, settings, animation, easing, scene assignments |
+| **ViewModels** | `src/HueCompanion.Tests/ViewModels/` | Scene Builder state and commands |
+| **MCP** | `src/HueCompanion.Tests/Mcp/` | Color parsing and fuzzy matching |
 
 ### Test Patterns
 
 - **FluentAssertions** for readable assertions
 - **IDisposable** pattern for test cleanup
-- **Testable wrappers** for services with file I/O
+- **Production services with temporary-directory constructor overrides** for file I/O tests
+- **xUnit v3 cancellation**: pass `TestContext.Current.CancellationToken` to cancellable operations
+- **Moq expression trees**: supply all arguments, including optional parameters
 - **AAA pattern** (Arrange, Act, Assert)
 
 ### Coverage Reports
@@ -88,8 +99,8 @@ View coverage in CI via Codecov: https://codecov.io/gh/ddrayne/hue-companion
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| **PR Validation** | Pull requests to main | Build, test, coverage upload |
-| **Main CI** | Push to main | Multi-platform build (x64/ARM64), package artifacts |
+| **PR Validation** | Pull requests to main | Build, tests/coverage, screenshot and visual checks |
+| **Main CI** | Push to main | x64/ARM64 builds, tests/coverage, screenshot and visual checks, package artifacts |
 
 ### PR Validation Flow
 
@@ -125,7 +136,8 @@ PR opened/updated
 
 - All tests must pass
 - Coverage uploaded to Codecov
-- Codecov thresholds: 50% project, 70% patch
+- Codecov status targets: 50% project, 70% patch, with a 5% threshold in `codecov.yml`. No local minimum coverage threshold is enforced; required external status checks depend on repository branch protection.
+- UI screenshot and visual-comparison steps currently use `continue-on-error: true`.
 
 ## 4. Versioning
 
@@ -139,12 +151,14 @@ Format: `MAJOR.MINOR.PATCH`
 
 ### Version Files
 
-Version is maintained in two locations:
+The bump script updates release version values in two locations:
 
 | File | Format | Example |
 |------|--------|---------|
 | `src/HueCompanion/HueCompanion.csproj` | `<Version>X.Y.Z</Version>` | `<Version>1.0.0</Version>` |
 | `src/HueCompanion/Package.appxmanifest` | `Version="X.Y.Z.0"` | `Version="1.0.0.0"` |
+
+The project also has `BaseVersion=0.1.0` for informational versions and CLI-supplied dev/stable suffixes; `Package.Dev.appxmanifest` has a separate development identity. The release bump script does not synchronize those values.
 
 ### Version Bump Script
 
@@ -288,6 +302,7 @@ coverage:
     patch:
       default:
         target: 70%      # New code coverage target
+        threshold: 5%
 
 ignore:
   - "**/*.xaml.cs"       # UI code-behind
@@ -320,6 +335,8 @@ Shared build settings for all projects:
 - Verify CODECOV_TOKEN secret is set in GitHub
 - Check coverage file exists: `TestResults/**/coverage.cobertura.xml`
 - Codecov failures don't break CI (`fail_ci_if_error: false`)
+
+The project also has `BaseVersion=0.1.0` for informational versions and CLI-supplied dev/stable suffixes; `Package.Dev.appxmanifest` has a separate development identity. The release bump script does not synchronize those values.
 
 ### Version Bump Script Doesn't Find Tags
 
@@ -421,15 +438,16 @@ For signed releases:
 
 1. **EV Code Signing Certificate** - Purchase from a trusted CA (DigiCert, Sectigo)
 2. **Windows Store Signing** - Automatic when publishing to Microsoft Store
-3. **Self-Signed (Dev Only)** - Works locally with Developer Mode enabled
+3. **Self-Signed (Dev Only)** - Requires the signing certificate to be trusted on the test machine; Developer Mode alone does not establish certificate trust
 
 ### Release Workflow
 
 The automated release workflow:
 1. Builds for x64 and ARM64
-2. Creates zip archives with the app files
+2. Creates ZIP archives and unsigned MSIX packages (`AppxPackageSigningEnabled=false`)
 3. Generates release notes
-4. Creates GitHub Release with artifacts attached
+4. Creates a GitHub Release with ZIP and MSIX artifacts attached
+5. Optionally runs the Store submission job when enabled
 
 To create a release:
 ```powershell
@@ -438,10 +456,10 @@ To create a release:
 
 ### Artifact Structure
 
-Downloaded releases include both ZIP and MSIX formats:
+The workflow prepares both ZIP and MSIX formats. The app declares MSIX packaging; a ZIP is not proof that launching outside a package works. Validate deployment, runtime prerequisites, and signing before distributing sideload instructions:
 
 ```
-HueCompanion-{version}-{platform}.zip     # Portable (extract and run)
+HueCompanion-{version}-{platform}.zip     # Published app files; verify runtime/package prerequisites
 ├── HueCompanion.exe
 ├── HueCompanion.dll
 ├── *.dll
@@ -509,7 +527,7 @@ Store deployment is controlled by the `STORE_ENABLED` repository variable:
 
 | Issue | Solution |
 |-------|----------|
-| Store job doesn't run | Check `STORE_ENABLED` is `true` (case-sensitive) |
+| Store job doesn't run | Check the `STORE_ENABLED` repository variable and the workflow condition |
 | Authentication failed | Verify secrets match Azure AD app |
 | Package validation failed | Check MSIX manifest matches Partner Center identity |
 | Version rejected | Ensure version is higher than current Store version |

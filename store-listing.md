@@ -32,7 +32,7 @@ AI INTEGRATION (MCP SERVER)
 Hue Companion includes a built-in Model Context Protocol (MCP) server that lets AI assistants control your lights using natural language. Connect to Claude Desktop, Claude Code, VS Code Copilot, and other MCP-compatible tools. Tell your AI to "set the living room to warm white at 50%" or "create a sunset animation" and Hue Companion handles the rest. Setup takes just a few clicks from the Settings page.
 
 DESIGNED FOR WINDOWS
-Every pixel is crafted to look and feel native on Windows 10 and Windows 11. Full support for dark and light themes. Smooth animations throughout the interface. Fast startup (under a second) and low memory usage (around 42 MB).
+Every pixel is crafted to look and feel native on Windows 10 and Windows 11. Full support for dark and light themes. Smooth animations throughout the interface. Native desktop integration for controlling your lights.
 
 REQUIREMENTS
 - One or more Philips Hue Bridges on your local network
@@ -41,7 +41,9 @@ REQUIREMENTS
 
 Hue Companion is not affiliated with Philips Hue or Signify.
 
-## What's New (v1.0.2)
+## Historical Release Notes (v1.0.2)
+
+These notes describe the original Store submission. The source project currently declares version 1.0.3; prepare release-specific notes from verified changes before the next submission.
 
 First Microsoft Store release
 

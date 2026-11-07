@@ -5,6 +5,8 @@ status: passed
 score: 4/4 must-haves verified
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 2: Gradient Track Visuals Verification Report
 
 **Phase Goal:** Each track displays continuous gradient color strip showing light color evolution over time

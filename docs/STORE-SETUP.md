@@ -1,6 +1,6 @@
 # Microsoft Store Deployment Setup
 
-This guide walks you through configuring automated Microsoft Store deployment for Hue Companion.
+This guide describes the Store deployment configuration used by `.github/workflows/release.yml`. Repository names and gates were checked on 2026-11-07; portal labels and account-specific access must be checked in the linked Microsoft documentation. Azure AD is now named Microsoft Entra ID.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ The release workflow automatically publishes to the Microsoft Store when:
 ## Step 1: Create Azure AD Application
 
 1. Go to [Azure Portal](https://portal.azure.com)
-2. Navigate to **Azure Active Directory** > **App registrations**
+2. Navigate to **Microsoft Entra ID** > **App registrations**
 3. Click **New registration**
 4. Configure the application:
    - **Name:** `HueCompanion-StorePublish`
@@ -81,23 +81,15 @@ The release workflow automatically publishes to the Microsoft Store when:
    - **Value:** `true`
 5. Click **Save**
 
-## Testing the Setup
+## Validating the Setup
 
-To test without creating a real release:
+Inspect `.github/workflows/release.yml`, the repository variable, and the secret names before publishing. There is no dry-run or pre-release exclusion in this workflow: pushing any matching `v*.*.*` tag creates a release and can submit to the Store when enabled. A tag such as `v0.0.1-test` still matches.
 
-1. Create a pre-release tag:
-   ```bash
-   git tag v0.0.1-test
-   git push origin v0.0.1-test
-   ```
+When ready to perform an actual release:
 
+1. Use the version bump workflow described in [DEVELOPMENT.md](DEVELOPMENT.md#5-release-process), with a version higher than the deployed Store version.
 2. Watch the workflow in GitHub Actions
-3. The `store-publish` job should run and show authentication succeeded
-4. Delete the test tag when done:
-   ```bash
-   git tag -d v0.0.1-test
-   git push origin :refs/tags/v0.0.1-test
-   ```
+3. Check the `store-publish` job for authentication, upload, and submission results; workflow configuration alone does not establish success.
 
 ## Troubleshooting
 
@@ -120,7 +112,7 @@ To test without creating a real release:
 
 ### Store Deployment Skipped
 
-- Ensure `STORE_ENABLED` variable is set to `true` (not `True` or `TRUE`)
+- Set the `STORE_ENABLED` repository variable to `true` to enable the Store job
 - Check if all four secrets are configured
 - Verify the variable is in **Variables**, not **Secrets**
 

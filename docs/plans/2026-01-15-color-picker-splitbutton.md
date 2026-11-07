@@ -1,6 +1,8 @@
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../DEVELOPMENT.md) and [reconciled planning state](../../.planning/STATE.md) before making changes.
+
 # Color Picker SplitButton Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Original execution note (historical):** This plan was written for `superpowers:executing-plans`. It is not a current instruction to rerun completed work.
 
 **Goal:** Replace icon-click color picker entry point with an explicit SplitButton showing current color, placed adjacent to the on/off toggle.
 

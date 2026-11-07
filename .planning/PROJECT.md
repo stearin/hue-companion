@@ -1,6 +1,8 @@
 # Hue Companion
 
-## Current Milestone: v0.3 Scene Builder Bug Bash
+## Open Planning Milestone: v0.3 Scene Builder Bug Bash
+
+**Source reconciliation:** 2026-11-07. These milestone labels describe the Scene Builder workstream, not the application package version. See [STATE.md](STATE.md) for implementation and verification status.
 
 **Goal:** Fix color picker usability issues and keyframe interaction bugs discovered during v0.2 testing.
 
@@ -58,27 +60,27 @@ For future milestones (v2+):
 - [ ] Track reordering via drag
 - [ ] Ableton-style minimal transport layout
 - [ ] Zoom presets via keyboard shortcuts (Z/X)
-- [ ] Marquee selection for multiple keyframes
-- [ ] Multi-keyframe move/delete
+- [x] Marquee selection for multiple keyframes — implemented in SceneBuilderPage
+- [ ] Complete multi-keyframe move/delete workflow — selection/deletion exist; coordinated group movement requires evaluation
 
 ### Out of Scope
 
 - Audio integration or waveform display — this is lights-only
-- Multi-track selection/editing — keep single-track focus for now
-- Undo/redo system — not addressing in this pass
+- Further changes to multi-track editing — existing selection/clipboard operations already span tracks
+- Undo/redo redesign — existing TimelineCommandHistory already supports undo/redo
 - New animation types or event presets — polish existing, don't expand
 
 ## Context
 
-**Current state:** v0.2 shipped with 13,700+ lines added across 68 files. Scene Builder now has GPU-accelerated rendering with professional DAW-style visuals.
+**Current state:** The historical v0.2 milestone records the Win2D migration. GamutColorPicker is now integrated in the editor side panel, but remaining v0.3 acceptance checks and default-off snapping are open. Historical change statistics are retained in [MILESTONES.md](MILESTONES.md).
 
 **Codebase:** WinUI 3 app with MVVM pattern using CommunityToolkit.Mvvm.
 
 **Key files:**
-- `Views/SceneBuilderPage.xaml` — Timeline UI and controls
-- `Views/SceneBuilderPage.xaml.cs` — Rendering, hit testing, interaction (~1,300 LOC)
-- `Rendering/*.cs` — Win2D renderer classes (~350 LOC)
-- `Core/ViewModels/SceneBuilderViewModel.cs` — State and keyframe logic
+- `src/HueCompanion/Views/SceneBuilderPage.xaml` — Timeline UI and integrated gamut picker
+- `src/HueCompanion/Views/SceneBuilderPage.xaml.cs` — Input, selection, playback preview, and invalidation
+- `src/HueCompanion/Views/Rendering/` — Win2D renderer classes and hit testing
+- `src/HueCompanion.Core/ViewModels/SceneBuilderViewModel.cs` — State, keyframes, clipboard, and undo/redo
 
 **Graphics:** Win2D layered architecture with separate renderers:
 - TimeRulerRenderer — Time scale and tick marks
@@ -107,4 +109,4 @@ For future milestones (v2+):
 | Brightness slider 150ms debounce | Prevents API flooding while maintaining usable interaction | ✓ Good |
 
 ---
-*Last updated: 2026-01-21 after v0.3 milestone start*
+*Last reconciled: 2026-11-07 against source. Historical release and UAT claims above retain their original scope.*

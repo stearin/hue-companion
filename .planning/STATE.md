@@ -1,56 +1,37 @@
 # Project State
 
-## Project Reference
+**Reconciled against source:** 2026-11-07. This is a static implementation review, not a new release or Windows UAT result.
 
-See: .planning/PROJECT.md (updated 2026-01-21)
+## Project reference
 
-**Core value:** The track representation must feel like a real DAW — continuous color gradients showing what lights will do over time, with precise time alignment that users can trust.
-**Current focus:** v0.3 Scene Builder Bug Bash
+The open planning milestone is v0.3 Scene Builder Bug Bash. See [PROJECT.md](PROJECT.md), [ROADMAP.md](ROADMAP.md), and [REQUIREMENTS.md](REQUIREMENTS.md). The application project separately declares release version 1.0.3 and informational BaseVersion 0.1.0; planning milestone numbers are not package versions.
 
-## Current Position
+## Current position
 
-Phase: 5 - Color Picker Overhaul
-Plan: 03 of 4 (GamutColorPicker Control)
-Status: In progress
-Last activity: 2026-01-21 — Completed 05-03-PLAN.md
+- Phase 5 plans 05-01 through 05-03 have historical completion summaries and corresponding implementations.
+- Plan 05-04 is partially implemented: Scene Builder uses `GamutColorPicker`, removes the separate editor brightness slider, and sends color/brightness changes through the picker handler. There is no 05-04 completion summary.
+- The picker is hosted in `SidePanel`, rather than the floating popup described by CPICK-05. It defaults to Gamut C without a selected-light gamut binding in the page. Bulb-specific color limits, visible color accuracy, relative size, and drag behavior need acceptance verification.
+- Phase 6 remains outstanding: `SceneBuilderViewModel._isSnapEnabled` initializes to `true`, contrary to INTER-01.
 
-Progress: [███████░░░] 75% (3/4 plans in phase 5)
+## Requirement accounting
 
-## Performance Metrics
+| State | Requirements |
+|-------|--------------|
+| Implemented in source | CPICK-01, CPICK-03 |
+| Needs acceptance verification | CPICK-02, CPICK-04, COLOR-01, COLOR-02 |
+| Outstanding implementation/design decision | CPICK-05, INTER-01 |
 
-| Metric | Value |
-|--------|-------|
-| Phases total | 2 |
-| Phases complete | 0 |
-| Requirements total | 8 |
-| Requirements complete | 2 |
+No completion percentage is asserted for partially verified requirements.
 
-## Accumulated Context
+## Existing editor capabilities
 
-### Decisions
+Win2D timeline rendering, gradient tracks, hover states, keyframe selection, marquee selection, copy/paste, multiple-keyframe deletion, and undo/redo are implemented. Do not recreate them from older research or deferred-feature lists.
 
-| Phase | Decision | Rationale |
-|-------|----------|-----------|
-| 05-01 | Use HueColor.ToRgb() as single source of truth for XY→RGB conversion | Eliminates color inconsistency between UI components |
-| 05-01 | Remove all duplicate color conversion implementations | Reduces maintenance burden and prevents future divergence |
-| 05-02 | Use cross product sign method for point-in-triangle | Simpler than barycentric coordinates |
-| 05-02 | Implement adaptive saturation via ray-triangle intersection | Enables dynamic saturation ring sizing per hue |
-| 05-02 | Store gamuts A, B, C as static readonly instances | Avoids repeated allocation, safe for concurrent access |
-| 05-03 | Use HSV internally for color wheel display, convert to xy for output | Hue ring is naturally HSV-based, maintain HueColor API consistency |
-| 05-03 | Cache max saturation per hue angle (360 values) | Avoid expensive calculations during drag, 2.8KB memory for responsiveness |
-| 05-03 | Gray out-of-gamut regions with alpha 100 overlay | Show unavailable colors without hiding full color space |
+## Next work
 
-### Pending Todos
+1. Verify the integrated picker on Windows and representative bulbs; record acceptance evidence for color accuracy, size, and keyframe dragging.
+2. Resolve the side-panel design against CPICK-05 before closing that requirement.
+3. Implement and validate the planned default-off snapping behavior if continuing phase 6.
+4. Update requirement statuses and add a completion/verification record after that work; do not infer completion from this documentation refresh.
 
-None.
-
-### Blockers/Concerns
-
-None.
-
-## Session Continuity
-
-Last session: 2026-01-21T21:42:13Z
-Stopped at: Completed 05-03-PLAN.md (GamutColorPicker Control)
-Resume file: None
-Next: Continue with 05-04-PLAN.md (Scene Builder Integration) to complete phase
+See [codebase/CONCERNS.md](codebase/CONCERNS.md) for remaining implementation limitations. Phase plans, research, and summaries retain their original historical status under explicit archival notices.

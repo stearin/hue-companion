@@ -37,6 +37,8 @@ duration: 4min
 completed: 2026-01-21
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 05 Plan 01: Consolidate Color Conversions Summary
 
 **All XY-to-RGB conversions now use HueColor.ToRgb() with sRGB D65 matrix, eliminating gradient bar color mismatch (COLOR-01 fixed)**

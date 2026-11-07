@@ -49,6 +49,8 @@ duration: 8min
 completed: 2026-01-21
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 02 Plan 02: Integration and Contrast Outlines Summary
 
 **Integrated GradientTrackRenderer into timeline pipeline with keyframe contrast outlines and visual refinements**

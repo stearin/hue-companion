@@ -6,6 +6,8 @@ started: 2026-01-21T19:45:00Z
 updated: 2026-01-21T19:50:00Z
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 ## Current Test
 
 [testing complete]

@@ -1,21 +1,21 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-01-20
+**Analysis Date:** 2026-11-07
 
 ## Test Framework
 
 **Runner:**
-- xUnit 2.9.2
+- xUnit v3 (`xunit.v3` 4.0.2)
 - Config: `src/HueCompanion.Tests/HueCompanion.Tests.csproj`
 
 **Assertion Library:**
-- FluentAssertions 6.12.2
+- FluentAssertions 8.11.0
 
 **Run Commands:**
 ```bash
 dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj           # Run all tests
-dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj --watch   # Watch mode
-dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj /p:CollectCoverage=true  # Coverage
+dotnet watch --project src/HueCompanion.Tests/HueCompanion.Tests.csproj test   # Watch mode
+dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj --collect:"XPlat Code Coverage"  # Coverage
 ```
 
 ## Test File Organization
@@ -30,14 +30,23 @@ dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj /p:CollectCoverage=
   - Example: `Constructor_ClampsXToValidRange`, `SaveSceneAsync_CreatesJsonFile`, `FromRgb_RoundTripsApproximately`
 
 **Structure:**
-```
+```text
 src/HueCompanion.Tests/
-├── Models/
-│   ├── HueColorTests.cs
-│   └── ResultTests.cs
-└── Services/
-    ├── SceneStorageServiceTests.cs
-    └── SettingsServiceTests.cs
+|-- Mcp/
+|   |-- ColorParserTests.cs
+|   `-- FuzzyMatcherTests.cs
+|-- Models/
+|   |-- ColorConverterTests.cs
+|   |-- HueColorTests.cs
+|   `-- ResultTests.cs
+|-- Services/
+|   |-- AnimationEngineTests.cs
+|   |-- EasingTests.cs
+|   |-- RoomSceneAssignmentServiceTests.cs
+|   |-- SceneStorageServiceTests.cs
+|   `-- SettingsServiceTests.cs
+`-- ViewModels/
+    `-- SceneBuilderViewModelTests.cs
 ```
 
 ## Test Structure
@@ -100,35 +109,24 @@ public void White_ReturnsD65WhitePoint()
 
 ## Mocking
 
-**Framework:** Moq 4.20.72
+**Framework:** Moq 4.21.0
 
 **Patterns:**
-- Create testable versions of services by subclassing and overriding protected/public methods
-- Example from `src/HueCompanion.Tests/Services/SceneStorageServiceTests.cs:395-404`:
+- Mock service interfaces with `Mock<T>` and verify calls with `Setup` / `Verify`.
+- Specify every argument in Moq expression trees, including optional parameters. Omitting the optional transition argument causes CS0854.
+- Example from `src/HueCompanion.Tests/Services/AnimationEngineTests.cs`:
 ```csharp
-private class SceneStorageServiceTestable : SceneStorageService
-{
-    private readonly string _testUserScenesPath;
-
-    public SceneStorageServiceTestable(string testDirectory)
-    {
-        _testUserScenesPath = testDirectory;
-    }
-
-    public new string UserScenesPath => _testUserScenesPath;
-
-    // Override methods to use test directory instead
-    public new async Task<Result> SaveSceneAsync(AnimatedSceneModel scene)
-    {
-        // Test implementation
-    }
-}
+_bridgeMock.Verify(b =>
+    b.SetLightColorAndBrightnessAsync(
+        lightId, It.IsAny<HueColor>(), It.IsAny<double>(), It.IsAny<int?>()),
+    Times.AtLeastOnce());
 ```
 
 **What to Mock:**
-- File I/O operations (use temp directories with `Path.GetTempPath()`)
 - External API calls (bridge services)
 - Long-running operations in unit tests
+
+**File I/O:** Use real files in unique temporary directories for storage and settings tests; inject the directory through the service constructor.
 
 **What NOT to Mock:**
 - Core business logic (Result type, HueColor conversions)
@@ -178,29 +176,29 @@ private static AnimationDefinition CreateValidKeyframeAnimation(string id)
 
 ## Coverage
 
-**Requirements:** Not enforced via CI/CD
+**Requirements:** No minimum coverage threshold is enforced. Main CI collects coverage with `coverlet.collector`, uploads Cobertura reports to Codecov, and retains TRX results in the `test-results` artifact.
 
 **View Coverage:**
 ```bash
-dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj --collect:"XPlat Code Coverage" --results-directory ./TestResults
 ```
 
 ## Test Types
 
 **Unit Tests:**
 - Scope: Single method or small logical unit
-- Approach: No external dependencies, all inputs mocked
-- Location: Models (HueColorTests, ResultTests) and isolated service methods
+- Approach: Isolate external dependencies with service mocks; use real models and transformation logic.
+- Location: `Models/`, `Services/`, `Mcp/`, and `ViewModels/`.
 - Example: `HueColorTests.FromRgb_RoundTripsApproximately` tests color space conversion without bridge
 
 **Integration Tests:**
 - Scope: Multiple components working together
-- Approach: Use testable subclasses to swap real I/O for test directories
+- Approach: Construct real services with a unique temporary directory; clean it up with `IDisposable`.
 - Location: `SceneStorageServiceTests`, `SettingsServiceTests`
 - Example: `SaveSceneAsync_ThenLoadSceneAsync_RoundTripsData` writes to temp disk, reads back
 
 **E2E Tests:**
-- Framework: Not used currently
+- No dedicated E2E test framework. `tools/Run-UITests.ps1` launches the Windows app and captures page screenshots; `tools/Compare-Screenshots.ps1` compares them against visual baselines. Main CI runs both with `continue-on-error: true`.
 - Manual testing used for full application flow (bridge connection, scene playback)
 
 ## Common Patterns
@@ -222,6 +220,15 @@ public async Task SaveSceneAsync_CreatesJsonFile()
     var expectedPath = Path.Combine(_testDirectory, "test-scene-1.json");
     File.Exists(expectedPath).Should().BeTrue();
 }
+```
+
+**xUnit v3 Cancellation:**
+- Pass `TestContext.Current.CancellationToken` to test delays and asynchronous file writes that accept cancellation tokens. This resolves analyzer warning xUnit1051 and allows the runner to cancel those operations.
+- Keep test methods that perform asynchronous work as `async Task` and await their operations.
+```csharp
+await Task.Delay(300, TestContext.Current.CancellationToken);
+await File.WriteAllTextAsync(
+    invalidPath, "{ not valid json }", TestContext.Current.CancellationToken);
 ```
 
 **Error Testing:**
@@ -275,13 +282,13 @@ resultB.Should().BeCloseTo(b, 30);
 public class SceneStorageServiceTests : IDisposable
 {
     private readonly string _testDirectory;
-    private readonly SceneStorageServiceTestable _service;
+    private readonly SceneStorageService _service;
 
     public SceneStorageServiceTests()
     {
         _testDirectory = Path.Combine(Path.GetTempPath(), $"HueCompanionSceneTest_{Guid.NewGuid()}");
         Directory.CreateDirectory(_testDirectory);
-        _service = new SceneStorageServiceTestable(_testDirectory);
+        _service = new SceneStorageService(_testDirectory);
     }
 
     public void Dispose()
@@ -297,13 +304,21 @@ public class SceneStorageServiceTests : IDisposable
 ## Package Configuration
 
 Dependencies in `src/HueCompanion.Tests/HueCompanion.Tests.csproj`:
-- `Microsoft.NET.Test.Sdk` 17.12.0 - Test runner infrastructure
-- `xunit` 2.9.2 - Test framework
-- `xunit.runner.visualstudio` 3.0.0 - Visual Studio integration
-- `Moq` 4.20.72 - Mocking library
-- `FluentAssertions` 6.12.2 - Assertion library
-- `coverlet.collector` 6.0.4 - Code coverage collection
+- `Microsoft.NET.Test.Sdk` 18.11.0 - Test runner infrastructure
+- `xunit.v3` 4.0.2 - Test framework
+- `xunit.runner.visualstudio` 4.0.1 - Visual Studio integration
+- `Moq` 4.21.0 - Mocking library
+- `FluentAssertions` 8.11.0 - Assertion library
+- `coverlet.collector` 10.1.0 - Code coverage collection
+
+## Migration Verification and Gaps
+
+- After the dependency migration and Moq/cancellation fixes, `dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj --no-restore` passed all 181 tests with 0 failures and 0 skipped tests. The same suite passed after the synchronous scene-loading refactor in `SceneBuilderViewModel`.
+- `LoadSceneFromModel` now runs synchronously; `ImportFromJsonAsync` retains its `Task<Result>` API using completed tasks. Exercise scene loading/importing manually when verifying editor behavior.
+- The x64 app build and the Windows App SDK's `VerifyLaunchSettings` target passed after setting the launch profile's `commandName` to `MsixPackage` for packaged debugging. These checks do not establish that deployment or launching succeeds.
+- Passing unit tests do not validate `HueBridgeService` HTTP payloads or physical bridge behavior. The migrated service now uses `EffectsV2.Action`, explicit power-on dimming/color modes, and an empty `Children` list for room creation. These request shapes still need regression coverage and verification against a real bridge.
+- Existing compiler and MVVM Toolkit warnings outside the migration fixes remain; distinguish these from xUnit v3 analyzer warnings.
 
 ---
 
-*Testing analysis: 2026-01-20*
+*Testing analysis: 2026-11-07*

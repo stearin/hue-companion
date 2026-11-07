@@ -1,3 +1,5 @@
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../DEVELOPMENT.md) and [reconciled planning state](../../.planning/STATE.md) before making changes.
+
 # Scene Builder Event Triggers Design
 
 ## Overview

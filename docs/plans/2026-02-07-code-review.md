@@ -1,6 +1,33 @@
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../DEVELOPMENT.md) and [reconciled planning state](../../.planning/STATE.md) before making changes.
+
 # Full Code Review — HueCompanion
 
 **Date:** 2026-02-07
+
+## Source reconciliation — 2026-11-07
+
+The tables below are the original review, not an active unresolved-issue list. These selected findings have been superseded by current source:
+
+| Original finding | Current evidence |
+|------------------|------------------|
+| #1 card subscription cleanup | RoomCard and LightCard unsubscribe on context changes and unload. |
+| #2 page subscription cleanup | Several cited pages now clean up on navigation; inspect each lifecycle before reopening a leak report. |
+| #3 reconnection race | `EnsureConnectedAsync` now uses `_connectionSemaphore`. |
+| #4 assignment synchronization | `RoomSceneAssignmentService` now uses a semaphore. |
+| #7 division by zero | `ColorConverter.XyToRgb` guards `y <= 0`. |
+| #12 production service tests | Storage/settings tests instantiate real services with temporary-directory overrides. |
+| #13 test inventory | Tests now include AnimationEngine, ColorConverter, SceneBuilderViewModel, MCP helpers, and Moq usage. This does not establish full coverage. |
+| #16 mutable coordinates | `HueColor.X` and `Y` now use init accessors. |
+| #27 uncached room lookup | Room and zone lookups now use five-second caches. |
+| #28 detail-page timers | Detail-page navigation cleanup stops the relevant debounce timer. |
+| #32 duplicate push trigger | PR validation triggers only on pull requests to main. |
+| #34 unused color package | `HueApi.ColorConverters` is no longer referenced. |
+| #36 identical effect icons | NativeEffectInfo now assigns distinct glyphs. |
+| #40 misleading converter filename | Converters now live in `ValueConverters.cs`. |
+
+Plaintext credential storage (#5) remains. Findings not listed here have not been comprehensively re-audited by this documentation change. Use [current concerns](../../.planning/codebase/CONCERNS.md) and inspect source before treating historical severity, line numbers, or recommendations as current.
+
+## Original findings
 
 ## CRITICAL (5 issues)
 

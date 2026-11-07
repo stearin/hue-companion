@@ -1,6 +1,6 @@
 # Hue MCP Server
 
-An MCP (Model Context Protocol) server that exposes Philips Hue light control via stdio transport. Works with Claude Desktop, VS Code Copilot, and any MCP-compatible client.
+An MCP (Model Context Protocol) server that exposes Philips Hue light control via stdio or loopback HTTP(S) transport. Works with Claude Desktop, VS Code Copilot, and any MCP-compatible client.
 
 ## Features
 
@@ -35,7 +35,7 @@ An MCP (Model Context Protocol) server that exposes Philips Hue light control vi
 
 ### Prerequisites
 
-- .NET 8 Runtime (or use self-contained build)
+- ASP.NET Core 8 Runtime for framework-dependent builds (the project uses `Microsoft.NET.Sdk.Web`), or a self-contained publish
 - At least one Philips Hue bridge configured
 
 ### Bridge Configuration
@@ -53,7 +53,9 @@ The MCP server reads bridge credentials from `%LOCALAPPDATA%/HueCompanion/bridge
 ]
 ```
 
-If you've already configured bridges in the Hue Companion app, the server will also read from `%LOCALAPPDATA%/HueCompanion/settings.json` as a fallback.
+The normal app configuration is `%LOCALAPPDATA%/HueCompanion/settings.json`; the server reads it when no valid nonempty `bridges.json` list is loaded. No current WinUI writer for `bridges.json` exists. A successful bridge-list load returns before reading other saved settings. Credentials in both files are plaintext.
+
+The host checks `McpEnabled` before serving tools. When using the settings fallback, enable MCP in the app’s Settings page. The app can manage the HTTP(S) host as a child process, or a client/user can launch the executable independently.
 
 ### Building
 
@@ -69,7 +71,7 @@ dotnet publish src/HueCompanion.Mcp -c Release -r win-x64 --self-contained -p:Pu
 
 Use the **copy button** in Hue Companion's Settings → MCP Server section — it generates the config with the correct executable path for your system.
 
-For step-by-step instructions with screenshots, see the [MCP Setup Guide](https://hue-companion.drayne.xyz/mcp-setup).
+For step-by-step instructions with screenshots, see the [MCP Setup Guide](https://hue-companion.apps.drayne.xyz/mcp-setup).
 
 ### Claude Desktop Configuration
 
@@ -103,21 +105,22 @@ Add to `.mcp.json` in your project root:
 
 ### VS Code / GitHub Copilot Configuration
 
-Hue Companion must be running with the MCP server enabled (uses HTTP transport).
+Start the MCP HTTP(S) host through Hue Companion Settings or independently. Default HTTPS requires Kestrel certificate configuration. The endpoint is `https://localhost:5680` at the root: `app.MapMcp()` has no prefix, despite the startup hint that appends `/mcp`. Use `--http` for `http://localhost:5680`, or `--port` to change the port.
 
 Add to `.vscode/mcp.json` in your workspace:
 
 ```json
 {
-  "mcp": {
-    "servers": {
-      "hue-companion": {
-        "url": "https://localhost:5680"
-      }
+  "servers": {
+    "hue-companion": {
+      "type": "http",
+      "url": "https://localhost:5680"
     }
   }
 }
 ```
+
+This example uses the VS Code `servers` format, which differs from the portable `mcpServers` format. See the [official VS Code MCP configuration guidance](https://code.visualstudio.com/docs/agent-customization/mcp-servers) for the supported configuration destinations and guided setup.
 
 ## Example Usage
 
@@ -139,4 +142,4 @@ The server accepts colors in several formats:
 
 ## Scene Compatibility
 
-Scenes are stored as JSON in `%LOCALAPPDATA%/HueCompanion/Scenes/` and are fully compatible with the Hue Companion desktop app's Scene Builder.
+Scenes are stored as JSON in `%LOCALAPPDATA%/HueCompanion/Scenes/` using the same Core scene model as the desktop app. The editor imports native effects into its editable representation; verify round trips for effect-specific fields. In `AnimationEngine`, `Priority` does not arbitrate overlapping writes, and native-effect playback does not forward saved effect speed/brightness.

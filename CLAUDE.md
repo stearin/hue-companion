@@ -1,30 +1,35 @@
 # CLAUDE.md - Project Context
 
+Paths in this guide are relative to the repository root. Use the current source and project configuration when descriptive documentation differs.
+
 ## Build Commands
 
-```bash
+```powershell
 # Development workflow (preferred)
-.\hue dev              # Build and launch dev version
-.\hue dev --restart    # Kill existing dev, rebuild, launch
-.\hue dev --no-launch  # Build only, don't launch
+.\hue.cmd dev              # Build and launch dev version
+.\hue.cmd dev -Restart    # Kill existing dev, rebuild, launch
+.\hue.cmd dev -NoLaunch  # Build only, don't launch
 
 # Stable builds (for side-by-side comparison)
-.\hue cut              # Cut new stable from current code
-.\hue cut --message "reason"  # Cut with note
-.\hue stable           # Launch existing stable build
+.\hue.cmd cut              # Cut new stable from current code
+.\hue.cmd cut -Message "reason"  # Cut with note
+.\hue.cmd stable           # Launch existing stable build
 
 # Process management
-.\hue list             # Show running instances (dev/stable)
-.\hue kill dev         # Kill dev instances only
-.\hue kill stable      # Kill stable instances only
+.\hue.cmd list             # Show running instances (dev/stable)
+.\hue.cmd kill dev         # Kill dev instances only
+.\hue.cmd kill stable      # Kill stable instances only
 
 # Direct dotnet commands (if needed)
 dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=x64
 dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=x64 -p:DevBuild=true
+
+# Run the Core and MCP test suite
+dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj
 ```
 
-Dev builds display "Hue Companion (Dev)" in title bar with git hash version.
-Stable builds display "Hue Companion" with date-based version.
+Dev builds use the title "Hue Companion (Dev)"; the CLI supplies a git hash in the informational version.
+Stable builds use the title "Hue Companion"; `hue.cmd cut` supplies a date-based informational version suffix.
 Both can run simultaneously (separate MSIX identities).
 
 ## Architecture
@@ -43,33 +48,35 @@ src/
 
 | File | Purpose |
 |------|---------|
-| `Views/DashboardPage.xaml` | Main home page with room/zone cards |
-| `Views/RoomDetailPage.xaml` | Room detail with scenes and lights |
-| `Views/LightDetailPage.xaml` | Individual light control (color/temp) |
-| `Views/SceneBuilderPage.xaml` | DAW-style timeline editor for animated scenes |
-| `Views/ScenesPage.xaml` | Scene library with built-in and user scenes |
-| `Controls/RoomCard.xaml` | Widget card for rooms/zones on dashboard |
-| `Controls/LightCard.xaml` | Light row card with toggle and color indicator |
-| `Styles/AppStyles.xaml` | Global styles and theme resource overrides |
-| `Converters/BoolToOpacityConverter.cs` | XAML converters including gradient converters |
-| `Constants/AppConstants.cs` | Animation durations, color values |
-| `Core/Services/HueBridgeService.cs` | Hue API communication layer |
-| `Core/Services/AnimationEngine.cs` | Runs animated scenes on lights |
-| `Core/Services/AnimationService.cs` | Manages scene library and playback |
-| `Core/Services/SceneStorageService.cs` | Saves/loads user scenes to JSON |
-| `Core/ViewModels/DashboardViewModel.cs` | Dashboard data and commands |
-| `Core/ViewModels/RoomDetailViewModel.cs` | Room/zone detail with lights and scenes |
-| `Core/ViewModels/LightDetailViewModel.cs` | Individual light control state |
-| `Core/ViewModels/SceneBuilderViewModel.cs` | Scene Builder state and keyframe editing |
-| `Core/Models/AnimationDefinition.cs` | Animation types, keyframes, event patterns |
-| `Core/Models/AnimatedSceneModel.cs` | Complete scene with multiple animations |
-| `Mcp/Program.cs` | MCP server entry point (stdio + HTTP modes) |
-| `Mcp/Tools/LightTools.cs` | MCP tools for light/room control |
-| `Mcp/Tools/SceneTools.cs` | MCP tools for scene management |
-| `Mcp/Tools/AnimationTools.cs` | MCP tools for animated scenes |
-| `Mcp/Services/ColorParser.cs` | Parses hex/RGB/named colors to HueColor |
-| `Mcp/Services/FuzzyMatcher.cs` | Fuzzy name matching for lights and rooms |
-| `Services/McpServerManager.cs` | Manages MCP server process lifecycle |
+| `src/HueCompanion/Views/DashboardPage.xaml` | Main home page with room/zone cards |
+| `src/HueCompanion/Views/RoomDetailPage.xaml` | Room detail with scenes and lights |
+| `src/HueCompanion/Views/LightDetailPage.xaml` | Individual light control (color/temp) |
+| `src/HueCompanion/Views/SceneBuilderPage.xaml` | DAW-style timeline editor for animated scenes |
+| `src/HueCompanion/Views/ScenesPage.xaml` | Scene library with built-in and user scenes |
+| `src/HueCompanion/Controls/RoomCard.xaml` | Widget card for rooms/zones on dashboard |
+| `src/HueCompanion/Controls/LightCard.xaml` | Light row card with toggle and color indicator |
+| `src/HueCompanion/Styles/AppStyles.xaml` | Global styles and theme resource overrides |
+| `src/HueCompanion/Converters/ValueConverters.cs` | XAML converters including gradient converters |
+| `src/HueCompanion/Constants/AppConstants.cs` | Animation durations, color values |
+| `src/HueCompanion.Core/Services/HueBridgeService.cs` | Hue API communication layer |
+| `src/HueCompanion.Core/Services/AnimationEngine.cs` | Runs animated scenes on lights |
+| `src/HueCompanion.Core/Services/AnimationService.cs` | Manages scene library and playback |
+| `src/HueCompanion.Core/Services/SceneStorageService.cs` | Saves/loads user scenes to JSON |
+| `src/HueCompanion.Core/ViewModels/DashboardViewModel.cs` | Dashboard data and commands |
+| `src/HueCompanion.Core/ViewModels/RoomDetailViewModel.cs` | Room/zone detail with lights and scenes |
+| `src/HueCompanion.Core/ViewModels/LightDetailViewModel.cs` | Individual light control state |
+| `src/HueCompanion.Core/ViewModels/SceneBuilderViewModel.cs` | Scene Builder state and keyframe editing |
+| `src/HueCompanion.Core/Models/AnimationDefinition.cs` | Animation definitions, types, targeting, and repeat modes |
+| `src/HueCompanion.Core/Models/AnimationKeyframe.cs` | Individual keyframe state |
+| `src/HueCompanion.Core/Models/EventPattern.cs` | Random event timing and triggers |
+| `src/HueCompanion.Core/Models/AnimatedSceneModel.cs` | Complete scene with multiple animations |
+| `src/HueCompanion.Mcp/Program.cs` | MCP server entry point (stdio + HTTP modes) |
+| `src/HueCompanion.Mcp/Tools/LightTools.cs` | MCP tools for light/room control |
+| `src/HueCompanion.Mcp/Tools/SceneTools.cs` | MCP tools for scene management |
+| `src/HueCompanion.Mcp/Tools/AnimationTools.cs` | MCP tools for animated scenes |
+| `src/HueCompanion.Mcp/Services/ColorParser.cs` | Parses hex/RGB/named colors to HueColor |
+| `src/HueCompanion.Mcp/Services/FuzzyMatcher.cs` | Fuzzy name matching for lights and rooms |
+| `src/HueCompanion/Services/McpServerManager.cs` | Manages MCP server process lifecycle |
 
 ## Styling Approach
 
@@ -123,7 +130,7 @@ _useFirstBorder = !_useFirstBorder;
 ```
 
 ### Slider Debouncing
-All sliders use DispatcherTimer debouncing to send commands only after user stops dragging:
+Room and light detail sliders use 150ms DispatcherTimer debouncing. The Scene Builder’s `GamutColorPicker` sends color and brightness changes immediately for live preview; do not assume every slider is debounced. Typical detail-page pattern:
 ```csharp
 _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
 _debounceTimer.Tick += (s, e) => {
@@ -145,7 +152,7 @@ Scene cards display palette colors with gradient backgrounds:
 - `MainWindow.xaml` hosts NavigationView with rooms/zones in nav items
 - Rooms and zones both use `RoomDetailPage` (zones are just grouped lights)
 - Navigation parameters use `NavigationTag` record with Id and Type
-- `NavigationHelper.cs` manages page navigation
+- `src/HueCompanion/Helpers/NavigationService.cs` manages page navigation through `INavigationService`
 - Deep linking supported via command-line args
 
 ## Hue API
@@ -175,7 +182,7 @@ SetLightTemperatureAsync() // Set color temperature (mirek)
 
 ## Animation Constants
 
-Defined in `Constants/AppConstants.cs`:
+Defined in `src/HueCompanion/Constants/AppConstants.cs`:
 - `StandardDurationMs` = 300ms - Default animation duration
 - `InactiveIconAlpha` = 128 - Icon opacity when light is off
 
@@ -205,16 +212,9 @@ SceneBuilderPage.xaml.cs          # UI rendering, input handling
 
 ### Timeline Rendering
 
-```csharp
-// RenderTimeline() in SceneBuilderPage.xaml.cs
-1. Clear canvas
-2. Render time ruler ticks
-3. Render track separators
-4. Render snap grid lines (if enabled)
-5. Render keyframes as colored circles
-6. Render event tracks with dashed pattern
-7. Render playhead line
-```
+- `src/HueCompanion/Views/SceneBuilderPage.xaml.cs` handles input and updates canvas dimensions; `RenderTimeline()` invalidates the rendering cache and Win2D canvases.
+- `src/HueCompanion/Views/Rendering/TimelineRenderer.cs` composes snap-grid, track-lane, gradient, keyframe, event-pulse, and playhead layers.
+- The time ruler has a separate canvas; rendering helpers and hit testing live under `src/HueCompanion/Views/Rendering/`.
 
 ### Playback
 
@@ -225,24 +225,44 @@ SceneBuilderPage.xaml.cs          # UI rendering, input handling
 
 ### Save Format
 
-Scenes save as `AnimatedSceneModel` JSON in `%LOCALAPPDATA%/HueCompanion/Scenes/`:
+Scenes save as `AnimatedSceneModel` JSON in `%LOCALAPPDATA%/HueCompanion/Scenes/`, using the scene ID as the filename. `SceneStorageService` writes camelCase property names and camelCase string enum values, and omits null properties.
+
+Representative subset of a keyframe scene (other serialized default properties omitted):
 
 ```json
 {
-  "Id": "user_abc123",
-  "Name": "My Scene",
-  "Animations": [
+  "id": "user_abc123",
+  "name": "My Scene",
+  "defaultTargeting": "room",
+  "animations": [
     {
-      "Type": "Keyframe",
-      "Keyframes": [...]
-    },
-    {
-      "Type": "Event",
-      "EventPattern": { "Triggers": [...], "MinIntervalSeconds": 3 }
+      "id": "track_0",
+      "name": "Desk Light",
+      "type": "keyframe",
+      "lightAssignment": "subset",
+      "targetLightIndices": [0],
+      "durationSeconds": 4,
+      "repeatMode": "loop",
+      "keyframes": [
+        {
+          "timeSeconds": 0,
+          "color": { "x": 0.4596, "y": 0.4105 },
+          "brightness": 1.0,
+          "transitionStyle": "linear"
+        },
+        {
+          "timeSeconds": 4,
+          "color": { "x": 0.15, "y": 0.06 },
+          "brightness": 0.5,
+          "transitionStyle": "linear"
+        }
+      ]
     }
   ]
 }
 ```
+
+Event animations use `"type": "event"` and an `eventPattern` object with `triggers`, `minIntervalSeconds`, and `maxIntervalSeconds`. See `src/HueCompanion.Core/Models/EventPattern.cs` and `EventTrigger.cs` for their fields.
 
 ### Adding New Event Presets
 
@@ -282,7 +302,7 @@ HueCompanion.Mcp/
 ### Transport Modes
 
 - **stdio** (`--stdio` flag): Used by Claude Desktop and Claude Code. AI client launches the exe as a child process.
-- **HTTP** (default): Runs on `https://localhost:5680`. Used by VS Code and for development. Requires the Hue Companion app to be running.
+- **HTTP(S)** (default): `Program.cs` calls `app.MapMcp()` with no prefix; its startup hint still appends `/mcp`, so use the root URL documented here. Serves MCP at `https://localhost:5680` on loopback. Use `--http` for HTTP or `--port` to change the port. The WinUI app can manage the server process, or it can be launched independently with saved bridge settings and `McpEnabled=true`. Default HTTPS requires Kestrel certificate configuration.
 
 ### In-App Integration
 
@@ -294,8 +314,18 @@ HueCompanion.Mcp/
 ### Adding New MCP Tools
 
 1. Create a new `[McpServerToolType]` class in `Tools/` (or add methods to existing)
-2. Add `[McpServerTool]` attribute with Name and Description
+2. Add `[McpServerTool(Name = "hue_tool_name")]` and a separate `[Description("Tool description")]` attribute from `System.ComponentModel`.
 3. Inject services via constructor (e.g., `IMultiBridgeService`)
 4. Return JSON result strings (not exceptions) for errors
 5. Use `FuzzyMatcher` for room/light name resolution
 6. Use `ColorParser` for color input handling
+
+## Codebase Reference
+
+Consult these guides for task-specific detail; package manifests and source remain authoritative:
+
+- [STRUCTURE.md](.planning/codebase/STRUCTURE.md): Current project layout and file locations.
+- [STACK.md](.planning/codebase/STACK.md): Frameworks, dependency versions, and packaging settings.
+- [TESTING.md](.planning/codebase/TESTING.md): Test commands, xUnit v3 cancellation, and Moq argument matching.
+- [INTEGRATIONS.md](.planning/codebase/INTEGRATIONS.md): Hue discovery, MCP transports, storage, and deployment integrations.
+- [ARCHITECTURE.md](.planning/codebase/ARCHITECTURE.md): Architecture overview and data flows.

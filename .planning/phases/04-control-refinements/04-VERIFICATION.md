@@ -18,6 +18,8 @@ human_verification:
     why_human: "Accessibility testing requires actual screen reader"
 ---
 
+> **Historical record.** This document describes the work as planned or observed at the time. Its code samples, versions, checklists, and status are not current implementation instructions. Use the [current project guide](../../codebase/STRUCTURE.md) and [reconciled planning state](../../STATE.md) before making changes.
+
 # Phase 4: Control Refinements Verification Report
 
 **Phase Goal:** Controls provide responsive interaction without API flooding

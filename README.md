@@ -4,7 +4,7 @@
 ![Main CI](https://github.com/ddrayne/hue-companion/workflows/Main%20CI/badge.svg)
 [![codecov](https://codecov.io/gh/ddrayne/hue-companion/branch/main/graph/badge.svg)](https://codecov.io/gh/ddrayne/hue-companion)
 
-A modern Windows 11 app for controlling Philips Hue smart lights, built with WinUI 3 and Fluent Design.
+A Windows app for controlling Philips Hue smart lights, built with WinUI 3 and Fluent Design. Supports Windows 10 version 1809 or later, with Windows 11 recommended for the full visual experience.
 
 ## Features
 
@@ -115,7 +115,15 @@ Hue Companion includes a built-in [MCP](https://modelcontextprotocol.io) server 
 2. Use the **copy button** in Settings to get the config for your AI client
 3. Paste into your client's config file and restart
 
-For detailed step-by-step instructions, see the [MCP Setup Guide](https://hue-companion.drayne.xyz/mcp-setup).
+The HTTP transport serves MCP at `https://localhost:5680` by default and requires Kestrel HTTPS certificate configuration. Use `--http` for HTTP, `--port` to change the port, or `--stdio` for clients that launch the server themselves. The server can also run independently of the UI when bridge settings are saved and MCP is enabled.
+
+When building from source, build the MCP executable as well:
+
+```powershell
+dotnet build src/HueCompanion.Mcp/HueCompanion.Mcp.csproj
+```
+
+For detailed step-by-step instructions, see the [MCP Setup Guide](https://hue-companion.apps.drayne.xyz/mcp-setup).
 
 ### Available Tools
 
@@ -147,7 +155,7 @@ This preserves your settings, scenes, and bridge configurations.
 - Windows 10 version 1809 (build 17763) or later
 - Windows 11 recommended for full visual experience
 - Philips Hue Bridge on the same local network
-- .NET 8.0 Runtime
+- .NET 8.0 runtime for framework-dependent builds; .NET self-contained publishes bundle their runtime. Windows App SDK self-containment is configured separately.
 
 ## CI/CD & Releases
 
@@ -157,9 +165,11 @@ Every pull request and push to main triggers automated testing:
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| **PR Validation** | Pull requests | Build, test, coverage upload to Codecov |
-| **Main CI** | Push to main | Multi-platform build (x64/ARM64), UI screenshot capture |
+| **PR Validation** | Pull requests | Build, tests with coverage upload to Codecov, UI screenshot and visual checks |
+| **Main CI** | Push to main | x64/ARM64 builds, tests with coverage, UI screenshot and visual checks |
 | **Release** | Version tag (`v*.*.*`) | Build, test, create GitHub Release, optional Store publish |
+
+The .NET suite uses xUnit v3 and `coverlet.collector`. UI screenshot and visual-comparison steps currently use `continue-on-error: true`.
 
 ### Creating a Release
 
@@ -173,14 +183,14 @@ Every pull request and push to main triggers automated testing:
 
 This automatically:
 1. Updates version in project files
-2. Creates git tag (e.g., `v0.2.0`)
+2. Creates a version commit and git tag (e.g., `v1.0.4`)
 3. Pushes to trigger release workflow
 4. Builds x64 and ARM64 packages
 5. Creates GitHub Release with ZIP and MSIX artifacts
 
 ### Microsoft Store Deployment
 
-Releases can automatically publish to the Microsoft Store when configured. See [docs/STORE-SETUP.md](docs/STORE-SETUP.md) for setup instructions.
+Releases can automatically publish to the Microsoft Store when the repository variable `STORE_ENABLED` is `true` and the `STORE_PRODUCT_ID`, `STORE_TENANT_ID`, `STORE_CLIENT_ID`, and `STORE_CLIENT_SECRET` secrets are configured. See [docs/STORE-SETUP.md](docs/STORE-SETUP.md) for setup instructions.
 
 ### Full Documentation
 
@@ -191,18 +201,34 @@ For detailed CI/CD documentation including test coverage, versioning, and troubl
 ### Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/)
+- Windows development environment with WinUI/MSIX build tooling; NuGet restores the [Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/) dependency.
 - Visual Studio 2022 (optional, for IDE development)
 
 ### Build from Command Line
 
-```bash
-# Restore and build
-dotnet build src/HueCompanion/HueCompanion.csproj
+Run from the repository root on Windows:
 
-# Run the app
-dotnet run --project src/HueCompanion/HueCompanion.csproj
+```powershell
+# Restore and build the desktop app for x64
+dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=x64
+
+# Build the MCP server when using AI assistant integration
+dotnet build src/HueCompanion.Mcp/HueCompanion.Mcp.csproj
 ```
+
+For packaged debugging in Visual Studio, use a launch profile with `commandName` set to `MsixPackage`. The local file `src/HueCompanion/Properties/launchSettings.json` is ignored by Git; create it if absent:
+
+```json
+{
+  "profiles": {
+    "HueCompanion": {
+      "commandName": "MsixPackage"
+    }
+  }
+}
+```
+
+Select the `HueCompanion` startup project and launch profile to deploy and debug the packaged app.
 
 ### Build for Specific Architecture
 
@@ -213,6 +239,18 @@ dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=x64
 # ARM64
 dotnet build src/HueCompanion/HueCompanion.csproj -p:Platform=ARM64
 ```
+
+### Run Tests
+
+```powershell
+# Run the Core and MCP test suite
+dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj
+
+# Collect Cobertura coverage under TestResults/
+dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj --collect:"XPlat Code Coverage" --results-directory ./TestResults
+```
+
+The xUnit v3 suite covers models, services, the scene builder view model, and MCP parsing helpers. See [TESTING.md](.planning/codebase/TESTING.md) for test organization and conventions.
 
 ## Versioning
 
@@ -243,44 +281,46 @@ git push origin main --tags
 
 ## Project Structure
 
-```
+```text
 hue-companion/
-├── src/
-│   ├── HueCompanion/                 # WinUI 3 App (MSIX packaged)
-│   │   ├── Views/                  # XAML pages
-│   │   ├── Controls/               # Custom controls (RoomCard)
-│   │   ├── Styles/                 # Global styles and theme overrides
-│   │   ├── Converters/             # Value converters
-│   │   ├── Helpers/                # Navigation and utilities
-│   │   └── Assets/                 # App icons and images
-│   │
-│   ├── HueCompanion.Core/            # Business logic library
-│   │   ├── Models/                 # Data models
-│   │   ├── ViewModels/             # MVVM ViewModels
-│   │   └── Services/               # Hue API and settings services
-│   │
-│   ├── HueCompanion.Mcp/             # MCP server (AI assistant integration)
-│   │   ├── Tools/                  # MCP tool implementations
-│   │   └── Services/               # Color parsing, fuzzy matching
-│   │
-│   └── HueCompanion.Tests/           # Unit tests
-│
-├── tools/                          # Development tooling
-│   ├── Capture-AppScreenshot.ps1   # Screenshot capture script
-│   └── screenshot-mcp/             # MCP server for Claude integration
-│
-├── screenshots/                    # Captured app screenshots (gitignored)
-└── Directory.Build.props           # Shared build settings
+|-- src/
+|   |-- HueCompanion/                 # WinUI 3 desktop app (MSIX)
+|   |   |-- Views/                    # Win2D timeline renderers
+|   |   |-- Controls/                # Reusable UI components
+|   |   |-- Dialogs/                 # Modal dialogs
+|   |   |-- Services/                # Tray, hotkeys, MCP process management
+|   |   `-- Assets/                  # Built-in animated scene templates
+|   |-- HueCompanion.Core/            # Models, MVVM state, bridge/storage/animation services
+|   |-- HueCompanion.Mcp/             # Bridge-control MCP host, tools, and parsing services
+|   `-- HueCompanion.Tests/           # xUnit v3: Models, Services, ViewModels, Mcp
+|-- website/                          # Next.js product website
+|-- tools/                            # CLI, launch, capture, and release scripts
+|   `-- screenshot-mcp/              # Separate Node screenshot MCP server
+|-- tests/visual-baselines/            # UI comparison reference images
+|-- .planning/codebase/               # Architecture and development reference guides
+|-- .github/workflows/                # Build, test, and release automation
+|-- AGENTS.md                         # Coding-agent instructions and shared guidance links
+|-- CLAUDE.md                         # Project conventions and feature workflows
+|-- HueCompanion.sln                  # Four .NET projects
+`-- Directory.Build.props            # Shared compiler settings
 ```
+
+See [STRUCTURE.md](.planning/codebase/STRUCTURE.md) for the detailed directory map. Coding agents should start with [AGENTS.md](AGENTS.md), which references the shared project guidance in [CLAUDE.md](CLAUDE.md).
 
 ## Technology Stack
 
-- **Framework**: WinUI 3 / Windows App SDK 1.8
+- **Framework**: WinUI 3 / Windows App SDK 2.6.5
 - **Language**: C# / .NET 8
-- **Architecture**: MVVM with CommunityToolkit.Mvvm
+- **Architecture**: MVVM with CommunityToolkit.Mvvm 8.4.2
 - **Styling**: WinUI 3 lightweight styling with theme resource overrides
-- **Hue Integration**: HueApi NuGet package (CLIP v2 API)
-- **Packaging**: MSIX for Windows Store
+- **Hue Integration**: HueApi 3.4.0 (CLIP v2 API)
+- **Rendering**: Win2D 1.4.0 for the scene timeline
+- **MCP**: ModelContextProtocol / ModelContextProtocol.AspNetCore 2.3.1
+- **Testing**: xUnit v3 (`xunit.v3` 4.0.2), Moq 4.21.0, FluentAssertions 8.11.0
+- **Website**: Next.js 16.1.3, React 19.2.3, TypeScript, and Tailwind CSS
+- **Packaging**: MSIX for Microsoft Store or sideloading
+
+See [STACK.md](.planning/codebase/STACK.md) for the full dependency and runtime configuration.
 
 ## First Run Setup
 
@@ -298,7 +338,7 @@ This project includes tooling for visual UI validation with Claude Code. The sys
 
 - **`tools/Capture-AppScreenshot.ps1`** - PowerShell script that builds, launches, and captures the app window
 - **`tools/screenshot-mcp/`** - MCP server that exposes screenshot tools to Claude
-- **`.mcp.json`** - MCP server configuration for Claude Code
+- **`.mcp.json`** - Repository MCP configuration; its bridge-control `hue` entry contains a machine-specific executable path that must be updated for your checkout.
 
 ### Manual Screenshot Capture
 
@@ -320,7 +360,7 @@ Screenshots are saved to `screenshots/hue-{timestamp}.png` and the path is copie
 
 ### Claude Code MCP Integration
 
-When running Claude Code in this repository, the MCP server provides these tools:
+After enabling the screenshot MCP server in your client, it provides these tools:
 
 | Tool | Description |
 |------|-------------|
@@ -341,8 +381,8 @@ cd tools/screenshot-mcp
 npm install
 ```
 
-The MCP server is automatically enabled via `.mcp.json` when running Claude Code in this repository.
+The `hue-screenshots` entry in `.mcp.json` runs `node tools/screenshot-mcp/server.js`. Start the client from the repository root so this relative path resolves, and enable the server according to the client's project/trust settings. The separate `hue` entry controls lights; update its executable path to your built MCP server before using it.
 
 ## License
 
-MIT License - See LICENSE file for details.
+MIT License.

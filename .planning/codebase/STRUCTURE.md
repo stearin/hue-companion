@@ -1,71 +1,64 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-01-20
+**Analysis Date:** 2026-11-07
 
 ## Directory Layout
 
-```
+Selected files and directories (generated output omitted):
+
+```text
 hue-companion/
-├── src/                                    # Source code root
-│   ├── HueCompanion/                         # WinUI 3 presentation layer
-│   │   ├── App.xaml                        # Application root XAML
-│   │   ├── App.xaml.cs                     # DI container setup, crash logging
-│   │   ├── MainWindow.xaml(.cs)            # Navigation shell, hotkey/tray services
-│   │   ├── Views/                          # Page definitions (XAML + code-behind)
-│   │   ├── Controls/                       # Reusable UI components (cards, dialogs)
-│   │   ├── Styles/                         # Global XAML theme resources
-│   │   ├── Converters/                     # XAML value converters
-│   │   ├── Constants/                      # UI constants (animations, layout)
-│   │   ├── Helpers/                        # Navigation, command parsing, dispatching
-│   │   ├── Services/                       # UI-specific services (hotkey, tray)
-│   │   ├── Utilities/                      # Generic utilities
-│   │   └── Assets/                         # Images, app icon, embedded scenes
-│   │
-│   ├── HueCompanion.Core/                    # Business logic layer (platform-agnostic)
-│   │   ├── Services/                       # Bridge communication, storage, animation
-│   │   │   ├── Interfaces/                 # Service contracts
-│   │   │   ├── HueBridgeService.cs         # Single bridge API wrapper
-│   │   │   ├── MultiBridgeService.cs       # Multi-bridge aggregation
-│   │   │   ├── AnimationEngine.cs          # Keyframe/event animation executor
-│   │   │   ├── AnimationService.cs         # Scene playback coordinator
-│   │   │   ├── SceneStorageService.cs      # JSON persistence
-│   │   │   ├── SettingsService.cs          # AppSettings persistence
-│   │   │   ├── BridgeDiscoveryService.cs   # UPnP discovery
-│   │   │   └── Easing.cs                   # Animation easing functions
-│   │   │
-│   │   ├── ViewModels/                     # MVVM ViewModels for each page
-│   │   │   ├── DashboardViewModel.cs       # Room/zone grid display
-│   │   │   ├── RoomDetailViewModel.cs      # Room control + scene playback
-│   │   │   ├── LightDetailViewModel.cs     # Individual light control
-│   │   │   ├── SceneBuilderViewModel.cs    # Timeline editor state
-│   │   │   ├── ScenesViewModel.cs          # Built-in/user scene library
-│   │   │   └── SettingsViewModel.cs        # Bridge/hotkey configuration
-│   │   │
-│   │   ├── Models/                         # Domain entity models
-│   │   │   ├── RoomModel.cs                # Room/zone entity
-│   │   │   ├── LightModel.cs               # Light entity
-│   │   │   ├── SceneModel.cs               # Bridge scene reference
-│   │   │   ├── AnimatedSceneModel.cs       # User-created scene with animations
-│   │   │   ├── AnimationDefinition.cs      # Keyframe/event animation template
-│   │   │   ├── HueColor.cs                 # Color representation
-│   │   │   ├── Result.cs                   # Result<T> success/failure monad
-│   │   │   ├── AppSettings.cs              # User settings object
-│   │   │   └── EventPattern.cs             # Random effect trigger definitions
-│   │   │
-│   │   └── Events/                         # Custom event types
-│   │
-│   └── HueCompanion.Tests/                   # xUnit test suite
-│       ├── Services/                       # Service unit tests
-│       └── Models/                         # Model unit tests
-│
-├── docs/                                   # Documentation
-├── assets/                                 # Project-level assets (screenshots, design)
-├── .planning/                              # GSD phase planning
-│   └── codebase/                           # Architecture reference docs
-├── CLAUDE.md                               # Developer instructions
-├── README.md                               # Project overview
-├── HueCompanion.sln                          # Visual Studio solution
-└── Directory.Build.props                   # MSBuild properties
+|-- src/
+|   |-- HueCompanion/                     # WinUI 3 presentation layer
+|   |   |-- App.xaml(.cs)                 # Application startup, DI, crash logging
+|   |   |-- MainWindow.xaml(.cs)          # Navigation shell, hotkey/tray integration
+|   |   |-- Views/                        # Pages and code-behind
+|   |   |   `-- Rendering/                # Win2D timeline canvas, renderers, hit testing
+|   |   |-- Controls/                     # Cards, color pickers, effect flyouts
+|   |   |-- Dialogs/                      # SaveEffectDialog
+|   |   |-- Styles/                       # Global XAML theme resources
+|   |   |-- Converters/                   # ValueConverters.cs
+|   |   |-- Constants/                    # AppConstants.cs
+|   |   |-- Helpers/                      # Navigation, command parsing, dispatching
+|   |   |-- Services/                     # HotkeyService, SystemTrayService, McpServerManager
+|   |   |-- Utilities/                    # Animation, brushes, effects, visual tree helpers
+|   |   |-- Properties/                   # Launch settings and publish profiles
+|   |   |-- Assets/Scenes/                # Built-in animated scene JSON files
+|   |   |-- Package.appxmanifest          # Stable MSIX identity
+|   |   `-- Package.Dev.appxmanifest      # Development MSIX identity
+|   |-- HueCompanion.Core/                # Platform-independent domain and MVVM logic
+|   |   |-- Services/                     # Bridge access, playback, persistence, undo/redo
+|   |   |   `-- Interfaces/               # Service and UI abstraction contracts
+|   |   |-- ViewModels/                   # Page, dashboard, scene, track/keyframe state
+|   |   |-- Models/                       # Domain entities, settings, colors, animations
+|   |   `-- Utilities/                    # RoomIconHelper, TaskExtensions
+|   |-- HueCompanion.Mcp/                 # .NET MCP server using Core services
+|   |   |-- Program.cs                    # Host startup, transports, DI registration
+|   |   |-- Tools/                        # BridgeTools, LightTools, SceneTools, AnimationTools
+|   |   `-- Services/                     # FileSettingsService, ColorParser, FuzzyMatcher
+|   `-- HueCompanion.Tests/               # xUnit v3 tests; references Core and Mcp
+|       |-- Models/                       # Color and Result tests
+|       |-- Services/                     # Storage, settings, animation, assignment tests
+|       |-- ViewModels/                   # SceneBuilderViewModel tests
+|       `-- Mcp/                          # ColorParser and FuzzyMatcher tests
+|-- website/                              # Separate Next.js website (outside .NET solution)
+|   |-- src/app/                          # App Router pages, layout, metadata, global CSS
+|   |-- src/components/                   # Website UI components
+|   |-- src/lib/                          # Shared helpers and SEO utilities
+|   `-- public/                           # Static assets and product screenshots
+|-- tools/                                # CLI, launch, screenshots, releases, scene tooling
+|   |-- screenshot-mcp/                   # Node screenshot MCP server
+|   |-- hue-mcp/                          # MCP setup documentation
+|   `-- generated/                        # Generated scene examples
+|-- tests/visual-baselines/               # Reference screenshots for visual regression
+|-- .github/workflows/                    # Main CI, PR validation, releases
+|-- .planning/codebase/                   # Codebase reference documents
+|-- docs/                                 # Development, Store setup, implementation plans
+|-- assets/                               # Project-level branding assets
+|-- CLAUDE.md                             # Developer instructions
+|-- README.md                             # Project overview
+|-- HueCompanion.sln                       # Four .NET projects
+`-- Directory.Build.props                # Shared C# compiler settings
 ```
 
 ## Directory Purposes
@@ -78,23 +71,43 @@ hue-companion/
 **HueCompanion.Core (Business Logic Layer):**
 - Purpose: Domain logic, bridge communication, data models, view models
 - Contains: Service implementations, interfaces, models, viewmodels, animation engine
-- Key files: `Services/HueBridgeService.cs` (API wrapper), `Services/MultiBridgeService.cs` (aggregation), `Services/AnimationEngine.cs` (60fps animation)
+- Key files: `Services/HueBridgeService.cs` (API wrapper), `Services/MultiBridgeService.cs` (aggregation), `Services/AnimationEngine.cs` (approximately 30 FPS keyframe updates)
+
+**HueCompanion.Mcp (MCP Server):**
+- Purpose: Expose bridge, light, scene, and animation operations as MCP tools.
+- Contains: `Program.cs` for hosting and DI, `Tools/` for tool definitions, `Services/` for configuration loading and parsing helpers.
+- Transports: Standard input/output with `--stdio`; otherwise loopback HTTPS by default, or HTTP with `--http`.
+- References: `HueCompanion.Core`; the WinUI app starts and stops the server through `Services/McpServerManager.cs`.
+
+**website/ (Website):**
+- Purpose: Product information, feature pages, privacy, and MCP setup instructions.
+- Contains: Next.js App Router pages in `src/app/`, reusable React components in `src/components/`, helpers in `src/lib/`, and static assets in `public/`.
+- Build configuration: `package.json`, `next.config.ts`, `tsconfig.json`, and `eslint.config.mjs`; independent of the .NET solution.
+
+**tools/ and tests/visual-baselines/ (Development Tooling):**
+- Purpose: CLI control, launching, screenshots, visual comparisons, scene generation, and Store deployment.
+- Key files: `hue-cli.ps1`, `Launch-App.ps1`, `Run-UITests.ps1`, `Compare-Screenshots.ps1`, and `Deploy-ToStore.ps1`.
+- The Node server under `tools/screenshot-mcp/` is separate from the .NET server under `src/HueCompanion.Mcp/`.
 
 **HueCompanion.Tests (Testing):**
-- Purpose: Unit test coverage for core business logic
-- Contains: xUnit test cases for services and models
-- Key files: Test fixtures, mock implementations
+- Purpose: Automated coverage for core business logic and MCP parsing helpers
+- Contains: xUnit v3 test cases under `Services/`, `Models/`, `ViewModels/`, and `Mcp/`
+- Key files: `HueCompanion.Tests.csproj`, `Services/AnimationEngineTests.cs`, `ViewModels/SceneBuilderViewModelTests.cs`; see `TESTING.md` for commands and conventions.
 
 **Views/**
 - Purpose: Page definitions for navigation destinations
 - Contains: XAML markup (layout) + code-behind (event handlers)
-- Pattern: Each View has corresponding ViewModel in HueCompanion.Core/ViewModels
-- Files: `DashboardPage.xaml`, `RoomDetailPage.xaml`, `LightDetailPage.xaml`, `ScenesPage.xaml`, `SceneBuilderPage.xaml`, `SettingsPage.xaml`, `SetupPage.xaml`
+- Pattern: Pages use view models from `HueCompanion.Core/ViewModels`; some pages share a view model (for example, `RoomsPage` uses `DashboardViewModel`).
+- Files: `DashboardPage.xaml`, `RoomDetailPage.xaml`, `LightDetailPage.xaml`, `ScenesPage.xaml`, `SceneBuilderPage.xaml`, `SettingsPage.xaml`, `SetupPage.xaml`, `RoomsPage.xaml`, `ZonesPage.xaml`, `MyDashboardPage.xaml`, `SceneLibraryPage.xaml`
 
 **Controls/**
 - Purpose: Reusable UI components
-- Contains: Card controls (RoomCard, LightCard), dialogs, color pickers, effect flyouts
-- Files: `RoomCard.xaml` (room/zone card widget), `LightCard.xaml` (light row), `ColorPickerFlyout.xaml`, `SaveEffectDialog.xaml`
+- Contains: Card controls (RoomCard, LightCard), color pickers, effect flyouts, animated previews
+- Files: `RoomCard.xaml` (room/zone card widget), `LightCard.xaml` (light row), `ColorPickerFlyout.xaml`, `GamutColorPicker.xaml`, `NativeEffectFlyout.xaml`
+
+**Dialogs/**
+- Purpose: Modal UI dialogs
+- Files: `SaveEffectDialog.xaml` and its code-behind; dialogs live separately from reusable controls.
 
 **Styles/**
 - Purpose: Global XAML theme resources and control customizations
@@ -104,7 +117,7 @@ hue-companion/
 **Converters/**
 - Purpose: XAML value converters for binding transformations
 - Contains: Bool-to-opacity, color-to-brush, color-to-gradient converters
-- Files: `BoolToOpacityConverter.cs`, `HexToGradientBackgroundConverter.cs`, `HexToGradientBorderConverter.cs`
+- Files: `ValueConverters.cs` contains the converter classes, including `BoolToOpacityConverter`, `HexToGradientBackgroundConverter`, and `HexToGradientBorderConverter`.
 
 **Constants/**
 - Purpose: Centralized constant values
@@ -138,17 +151,22 @@ hue-companion/
 **Entry Points:**
 - `src/HueCompanion/App.xaml.cs`: Application initialization, DI setup, crash logging
 - `src/HueCompanion/MainWindow.xaml.cs`: Window shell, navigation, hotkey/tray integration
-- `HueCompanion.sln`: Solution file, references all three projects
+- `src/HueCompanion.Mcp/Program.cs`: MCP host, transport selection, and service registration
+- `website/src/app/layout.tsx` and `website/src/app/page.tsx`: Website root layout and home page
+- `HueCompanion.sln`: Solution file referencing the WinUI app, Core, MCP server, and Tests projects
 
 **Configuration:**
 - `src/HueCompanion/Constants/AppConstants.cs`: UI animation durations, layout sizes, icon glyphs
 - `src/HueCompanion.Core/Models/AppSettings.cs`: Settings object schema
-- `Directory.Build.props`: MSBuild version and platform configuration
+- `src/HueCompanion/Properties/launchSettings.json`: Packaged debugging profile (`commandName: MsixPackage`)
+- `src/HueCompanion/HueCompanion.csproj`: Windows target, MSIX packaging, architectures, and development build identity
+- `src/HueCompanion/Package.appxmanifest` and `Package.Dev.appxmanifest`: Package identities and capabilities
+- `Directory.Build.props`: Shared language version, nullable references, implicit usings, and warning settings
 
 **Core Logic:**
 - `src/HueCompanion.Core/Services/HueBridgeService.cs`: Single bridge HueApi wrapper
 - `src/HueCompanion.Core/Services/MultiBridgeService.cs`: Multi-bridge orchestration
-- `src/HueCompanion.Core/Services/AnimationEngine.cs`: 60fps animation executor
+- `src/HueCompanion.Core/Services/AnimationEngine.cs`: Keyframe/event animation executor; keyframe loop delays 33 ms between updates (approximately 30 FPS)
 - `src/HueCompanion.Core/Services/SceneStorageService.cs`: JSON scene persistence
 - `src/HueCompanion.Core/Services/SettingsService.cs`: AppSettings JSON storage
 
@@ -158,11 +176,16 @@ hue-companion/
 - `src/HueCompanion/Views/RoomDetailPage.xaml`: Room control + scene playback
 - `src/HueCompanion/Views/LightDetailPage.xaml`: Individual light control
 - `src/HueCompanion/Views/SceneBuilderPage.xaml`: Timeline editor UI
+- `src/HueCompanion/Views/Rendering/`: Win2D timeline rendering, caching, and hit testing
+- `src/HueCompanion.Core/ViewModels/SceneBuilderViewModel.cs`: Editor state, synchronous `LoadSceneFromModel`, and scene import/export orchestration
 - `src/HueCompanion/Styles/AppStyles.xaml`: Global theme resources
 
 **Testing:**
 - `src/HueCompanion.Tests/Services/`: Service unit tests
 - `src/HueCompanion.Tests/Models/`: Model unit tests
+- `src/HueCompanion.Tests/ViewModels/`: Scene builder view-model tests
+- `src/HueCompanion.Tests/Mcp/`: MCP parsing and matching tests
+- `tools/Run-UITests.ps1`, `tools/Compare-Screenshots.ps1`, and `tests/visual-baselines/`: UI screenshot checks and baseline images
 
 ## Naming Conventions
 
@@ -172,7 +195,7 @@ hue-companion/
 - Models: `[EntityName]Model.cs` (e.g., RoomModel.cs)
 - Services: `[ServiceName]Service.cs` (e.g., HueBridgeService.cs)
 - Interfaces: `I[ServiceName].cs` (e.g., IHueBridgeService.cs)
-- Converters: `[Conversion]Converter.cs` (e.g., BoolToOpacityConverter.cs)
+- Converters: `[Conversion]Converter` classes consolidated in `Converters/ValueConverters.cs`
 
 **Directories:**
 - Feature/domain areas: PascalCase (Views, Controls, Services, ViewModels, Models)
@@ -180,17 +203,17 @@ hue-companion/
 - Platform-specific: Grouped by concern, not platform (all Views in single Views/ folder, not separated by platform)
 
 **Namespaces:**
-- Global namespace prefix: `HueCompanion` or `HueCompanion.Core`
+- Namespace prefixes: `HueCompanion`, `HueCompanion.Core`, `HueCompanion.Mcp`, and `HueCompanion.Tests`
 - Layers: `HueCompanion.Core.Services.Interfaces`, `HueCompanion.Core.ViewModels`, `HueCompanion.Core.Models`
 - Features: `HueCompanion.Helpers`, `HueCompanion.Services`, `HueCompanion.Converters`, `HueCompanion.Constants`
 
 **C# Code:**
 - Classes/Methods: PascalCase
-- Properties: PascalCase (including backing fields with underscore prefix `_fieldName`)
+- Properties: PascalCase; private backing fields use `_camelCase`
 - Parameters: camelCase
-- Constants: UPPER_CASE if file-scoped, PascalCase if public
+- Constants: PascalCase (for example, `StandardDurationMs`)
 - Private fields: `_camelCase`
-- Async methods: Suffix `Async`
+- Task-returning methods: Suffix `Async`; synchronous helpers omit the suffix (for example, `LoadSceneFromModel`).
 
 ## Where to Add New Code
 
@@ -204,13 +227,24 @@ hue-companion/
 **New Control:**
 - XAML Control: `src/HueCompanion/Controls/[ControlName].xaml`
 - Code-behind: `src/HueCompanion/Controls/[ControlName].xaml.cs`
-- Register if reusable: Include in Views folder or document in CLAUDE.md
+- Keep reusable controls in `Controls/`; put modal dialogs in `Dialogs/` and consume them from pages.
 
 **New Service:**
 - Interface: `src/HueCompanion.Core/Services/Interfaces/I[ServiceName].cs`
 - Implementation: `src/HueCompanion.Core/Services/[ServiceName].cs`
 - Register in DI: `App.xaml.cs` ConfigureServices() with appropriate lifetime (Singleton for stateful, Transient for stateless)
 - Document in CLAUDE.md service architecture section
+
+**New MCP Tool:**
+- Tool definition: `src/HueCompanion.Mcp/Tools/[FeatureName]Tools.cs`, using MCP tool attributes.
+- Shared domain operations: Reuse interfaces and implementations in `HueCompanion.Core/`.
+- Registration: Assembly scanning in `src/HueCompanion.Mcp/Program.cs`; add dependencies to that host's DI registration as needed.
+- Parsing/helper tests: `src/HueCompanion.Tests/Mcp/[ClassName]Tests.cs`.
+
+**New Website Page:**
+- Route: `website/src/app/[route]/page.tsx`.
+- Reusable components: `website/src/components/`.
+- Shared helpers: `website/src/lib/`; static assets: `website/public/`.
 
 **New Model:**
 - Definition: `src/HueCompanion.Core/Models/[ModelName].cs`
@@ -219,13 +253,16 @@ hue-companion/
 
 **New Utility/Helper:**
 - Presentation helpers: `src/HueCompanion/Helpers/[HelperName].cs`
-- Shared utilities: `src/HueCompanion/Utilities/[UtilityName].cs`
-- Converters: `src/HueCompanion/Converters/[Conversion]Converter.cs`
+- UI utilities: `src/HueCompanion/Utilities/[UtilityName].cs`
+- Platform-independent utilities: `src/HueCompanion.Core/Utilities/[UtilityName].cs`
+- Converters: Add `[Conversion]Converter` to `src/HueCompanion/Converters/ValueConverters.cs`
 
 **Tests:**
 - Service tests: `src/HueCompanion.Tests/Services/[ServiceName]Tests.cs`
 - Model tests: `src/HueCompanion.Tests/Models/[ModelName]Tests.cs`
-- Fixtures: `src/HueCompanion.Tests/[FeatureName]Fixtures.cs`
+- View-model tests: `src/HueCompanion.Tests/ViewModels/[ViewModelName]Tests.cs`
+- MCP tests: `src/HueCompanion.Tests/Mcp/[ClassName]Tests.cs`
+- Helpers and factories currently live inside their test classes; shared fixture files can be added if needed.
 
 ## Special Directories
 
@@ -239,7 +276,7 @@ hue-companion/
 - Purpose: Embedded JSON scene templates (built-in scenes)
 - Format: AnimatedSceneModel JSON structure
 - Committed: Yes, as template seed data
-- Usage: Loaded by AnimationService on application start
+- Usage: `SceneStorageService.LoadBuiltInScenesAsync()` reads these files; `AnimationService` combines built-in and user scenes when listing scenes.
 
 **(HueCompanion.Core) bin/ and obj/**
 - Purpose: Build output and intermediate files
@@ -256,7 +293,8 @@ hue-companion/
 **%LOCALAPPDATA%/HueCompanion/ (Runtime)**
 - Purpose: Application data directory (settings, scenes, logs)
 - Structure:
-  - `AppSettings.json`: Serialized AppSettings object
+  - `settings.json`: Serialized AppSettings object (also the MCP settings fallback)
+  - `bridges.json`: Optional shared bridge configuration read by the MCP server before falling back to `settings.json`
   - `Scenes/`: User-created AnimatedSceneModel JSON files
   - `crash.log`: Unhandled exception log
 - Lifetime: Persistent across application launches
@@ -264,4 +302,4 @@ hue-companion/
 
 ---
 
-*Structure analysis: 2026-01-20*
+*Structure analysis: 2026-11-07*

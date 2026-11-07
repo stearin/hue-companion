@@ -3,15 +3,17 @@
 **Defined:** 2026-01-21
 **Core Value:** The track representation must feel like a real DAW — continuous color gradients showing what lights will do over time, with precise time alignment that users can trust.
 
+**Source reconciliation:** 2026-11-07. Checked boxes mean implementation exists in source; physical-bulb and Windows UI acceptance remain separate.
+
 ## v0.3 Requirements
 
 Bug fixes and usability improvements for Scene Builder color picker and interactions.
 
 ### Color Picker Redesign
 
-- [ ] **CPICK-01**: Color picker uses hue ring with adaptive saturation limit per hue angle (no impossible selections)
+- [x] **CPICK-01**: Color picker uses hue ring with adaptive saturation limit per hue angle (no impossible selections)
 - [ ] **CPICK-02**: All selectable colors are realizable on Philips Hue bulbs
-- [ ] **CPICK-03**: RGB text input fields removed from color picker
+- [x] **CPICK-03**: RGB text input fields removed from color picker
 - [ ] **CPICK-04**: Color picker circle reduced to ~50% of current size
 - [ ] **CPICK-05**: Color picker popup can appear outside timeline area bounds
 
@@ -26,7 +28,7 @@ Bug fixes and usability improvements for Scene Builder color picker and interact
 
 ## Future Requirements
 
-Deferred from v0.2 to future milestones:
+Remaining proposals and capabilities reconciled from the original v0.2 deferred list:
 
 ### Scene Builder v2
 
@@ -34,8 +36,8 @@ Deferred from v0.2 to future milestones:
 - **SCENE-02**: Track reordering via drag
 - **SCENE-03**: Ableton-style minimal transport layout
 - **SCENE-04**: Zoom presets via keyboard shortcuts (Z/X)
-- **SCENE-05**: Marquee selection for multiple keyframes
-- **SCENE-06**: Multi-keyframe move/delete
+- **SCENE-05 — Implemented**: Marquee selection for multiple keyframes
+- **SCENE-06 — Partial**: Multiple-keyframe selection/deletion exists; coordinated group movement still needs separate evaluation
 
 ## Out of Scope
 
@@ -43,20 +45,20 @@ Deferred from v0.2 to future milestones:
 |---------|--------|
 | Unrestricted color wheel | Hue bulbs can't reproduce all sRGB colors; wheel must be clipped to Hue gamut |
 | Audio integration | This is lights-only |
-| Undo/redo system | Not addressing in this pass |
+| Further undo/redo changes | A command-history implementation already exists; no redesign is planned in this milestone |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CPICK-01 | Phase 5 | Pending |
-| CPICK-02 | Phase 5 | Pending |
-| CPICK-03 | Phase 5 | Pending |
-| CPICK-04 | Phase 5 | Pending |
-| CPICK-05 | Phase 5 | Pending |
-| COLOR-01 | Phase 5 | Pending |
-| COLOR-02 | Phase 5 | Pending |
-| INTER-01 | Phase 6 | Pending |
+| CPICK-01 | Phase 5 | Implemented: configured-gamut saturation limiting; bulb-specific integration needs verification |
+| CPICK-02 | Phase 5 | Needs physical-bulb verification; page currently uses default Gamut C |
+| CPICK-03 | Phase 5 | Implemented: GamutColorPicker has no RGB input fields |
+| CPICK-04 | Phase 5 | Needs acceptance verification: current canvas is 240px with a 110px wheel radius; relative-size target unverified |
+| CPICK-05 | Phase 5 | Outstanding: picker uses a side panel, not the proposed floating popup |
+| COLOR-01 | Phase 5 | Shared conversion/picker paths exist; visible agreement needs Windows verification |
+| COLOR-02 | Phase 5 | Time-only move path exists; drag color preservation needs Windows regression verification |
+| INTER-01 | Phase 6 | Outstanding: _isSnapEnabled initializes to true |
 
 **Coverage:**
 - v0.3 requirements: 8 total
@@ -65,4 +67,4 @@ Deferred from v0.2 to future milestones:
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-21 after roadmap creation*
+*Last reconciled: 2026-11-07 against current source; no new UAT performed.*
