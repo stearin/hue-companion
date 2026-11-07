@@ -120,12 +120,20 @@ public sealed partial class LightCard : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _isLoaded = true;
+        if (_currentViewModel == null && ViewModel != null)
+        {
+            _currentViewModel = ViewModel;
+            _currentViewModel.PropertyChanged += ViewModel_PropertyChanged;
+        }
+        UpdateSliderFromViewModel();
         ApplyThemeBackground();
         UpdateActiveState();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        _isLoaded = false;
+        _brightnessDebounceTimer?.Stop();
         if (_currentViewModel != null)
         {
             _currentViewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -135,6 +143,8 @@ public sealed partial class LightCard : UserControl
 
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
+        // A recycled card must never apply an earlier light’s pending edit.
+        _brightnessDebounceTimer?.Stop();
         if (_currentViewModel != null)
         {
             _currentViewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -145,6 +155,7 @@ public sealed partial class LightCard : UserControl
         if (_currentViewModel != null)
         {
             _currentViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            UpdateSliderFromViewModel();
 
             if (_isLoaded)
             {
@@ -186,8 +197,14 @@ public sealed partial class LightCard : UserControl
     {
         if (ViewModel == null) return;
         _isUpdatingSlider = true;
-        BrightnessSlider.Value = ViewModel.BrightnessPercent;
-        _isUpdatingSlider = false;
+        try
+        {
+            BrightnessSlider.Value = ViewModel.BrightnessPercent;
+        }
+        finally
+        {
+            _isUpdatingSlider = false;
+        }
     }
 
     private void UpdateActiveState()
@@ -352,7 +369,7 @@ public sealed partial class LightCard : UserControl
 
     private void BrightnessSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
-        if (_isUpdatingSlider || ViewModel == null) return;
+        if (!_isLoaded || _isUpdatingSlider || ViewModel == null) return;
 
         _pendingBrightness = e.NewValue / 100.0;
 

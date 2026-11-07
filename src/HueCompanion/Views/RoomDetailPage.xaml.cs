@@ -545,7 +545,7 @@ public sealed partial class RoomDetailPage : Page
     private void BrightnessSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
         // Skip if we're programmatically animating the slider
-        if (_isUpdatingSlider) return;
+        if (_isUpdatingSlider || ViewModel.IsLoading || !_isLoaded) return;
 
         // Debounce: only send command after user stops dragging for 150ms
         _pendingBrightness = e.NewValue / 100.0;
@@ -571,6 +571,23 @@ public sealed partial class RoomDetailPage : Page
     private void AnimateSliderToValue(double targetValue)
     {
         if (BrightnessSlider == null) return;
+
+        // Initial bridge data is a display update, not a brightness edit.
+        // Avoid an entrance storyboard outliving the initial-value guard.
+        if (ViewModel.IsLoading)
+        {
+            _brightnessDebounceTimer?.Stop();
+            _isUpdatingSlider = true;
+            try
+            {
+                BrightnessSlider.Value = targetValue;
+            }
+            finally
+            {
+                _isUpdatingSlider = false;
+            }
+            return;
+        }
 
         _isUpdatingSlider = true;
 

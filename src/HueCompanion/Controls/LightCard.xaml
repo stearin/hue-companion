@@ -145,7 +145,6 @@
                     <Slider x:Name="BrightnessSlider"
                             Minimum="0" Maximum="100"
                             MinHeight="24" Height="24" Padding="0"
-                            Value="{Binding BrightnessPercent, Mode=OneWay}"
                             ValueChanged="BrightnessSlider_ValueChanged"
                             IsEnabled="{Binding IsOn}">
                         <Slider.Resources>

@@ -318,7 +318,13 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task SetBrightnessAsync(double brightness)
     {
-        Brightness = Math.Clamp(brightness, 0.0, 1.0);
+        var requestedBrightness = Math.Clamp(brightness, 0.0, 1.0);
+        // Sliders display whole percentages. Loading or refreshing a binding can
+        // echo that rounded value; sending it to Hue would also turn lights on.
+        if (requestedBrightness == Brightness || requestedBrightness == BrightnessPercent / 100.0)
+            return;
+
+        Brightness = requestedBrightness;
         OnPropertyChanged(nameof(BrightnessPercent));
 
         if (_bridgeService == null) return;
@@ -759,7 +765,13 @@ public partial class LightItemViewModel : ObservableObject
     [RelayCommand]
     private async Task SetBrightnessAsync(double brightness)
     {
-        Brightness = Math.Clamp(brightness, 0.0, 1.0);
+        var requestedBrightness = Math.Clamp(brightness, 0.0, 1.0);
+        // Sliders display whole percentages. Loading or refreshing a binding can
+        // echo that rounded value; sending it to Hue would also turn lights on.
+        if (requestedBrightness == Brightness || requestedBrightness == BrightnessPercent / 100.0)
+            return;
+
+        Brightness = requestedBrightness;
         OnPropertyChanged(nameof(BrightnessPercent));
 
         await _bridgeService.SetLightBrightnessAsync(LightId, Brightness);
