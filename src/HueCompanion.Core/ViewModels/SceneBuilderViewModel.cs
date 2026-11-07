@@ -187,7 +187,7 @@ public partial class SceneBuilderViewModel : ObservableObject
         // Update bridge service for the selected room
         UpdateBridgeService();
 
-        // Don't create default tracks when loading a scene - LoadSceneFromModelAsync handles it
+        // Don't create default tracks when loading a scene - LoadSceneFromModel handles it
         if (_isLoadingScene)
             return;
 
@@ -664,7 +664,7 @@ public partial class SceneBuilderViewModel : ObservableObject
             return Result.Failure("Cannot edit built-in scenes");
         }
 
-        await LoadSceneFromModelAsync(scene);
+        LoadSceneFromModel(scene);
         HasUnsavedChanges = false; // Just loaded, no changes yet
         return Result.Success();
     }
@@ -717,21 +717,21 @@ public partial class SceneBuilderViewModel : ObservableObject
     /// <summary>
     /// Imports a scene from JSON string.
     /// </summary>
-    public async Task<Result> ImportFromJsonAsync(string json)
+    public Task<Result> ImportFromJsonAsync(string json)
     {
         try
         {
             var scene = JsonSerializer.Deserialize<AnimatedSceneModel>(json, _jsonOptions);
             if (scene == null)
             {
-                return Result.Failure("Failed to parse scene JSON");
+                return Task.FromResult(Result.Failure("Failed to parse scene JSON"));
             }
 
             // Validate the scene
             var validationResult = _storageService.ValidateScene(scene);
             if (validationResult.IsFailure)
             {
-                return Result.Failure($"Invalid scene: {validationResult.Error}");
+                return Task.FromResult(Result.Failure($"Invalid scene: {validationResult.Error}"));
             }
 
             // Generate new ID for imported scene (treat as new)
@@ -739,18 +739,18 @@ public partial class SceneBuilderViewModel : ObservableObject
             scene.IsBuiltIn = false;
 
             // Load into editor
-            await LoadSceneFromModelAsync(scene);
+            LoadSceneFromModel(scene);
 
             HasUnsavedChanges = true; // Imported scenes need to be saved
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (JsonException ex)
         {
-            return Result.Failure($"Invalid JSON: {ex.Message}");
+            return Task.FromResult(Result.Failure($"Invalid JSON: {ex.Message}"));
         }
         catch (Exception ex)
         {
-            return Result.Failure($"Failed to import scene: {ex.Message}");
+            return Task.FromResult(Result.Failure($"Failed to import scene: {ex.Message}"));
         }
     }
 
@@ -852,7 +852,7 @@ public partial class SceneBuilderViewModel : ObservableObject
     /// <summary>
     /// Loads an AnimatedSceneModel into the editor.
     /// </summary>
-    private async Task LoadSceneFromModelAsync(AnimatedSceneModel scene)
+    private void LoadSceneFromModel(AnimatedSceneModel scene)
     {
         _isLoadingScene = true;
         try

@@ -1401,7 +1401,7 @@ public sealed partial class SceneBuilderPage : Page
         }
     }
 
-    private async void CheckEventTriggers()
+    private void CheckEventTriggers()
     {
         if (ViewModel.EventTracks.Count == 0 || ViewModel.Tracks.Count == 0)
             return;
