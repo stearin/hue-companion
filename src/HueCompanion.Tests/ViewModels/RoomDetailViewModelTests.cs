@@ -92,6 +92,37 @@ public class RoomDetailViewModelTests
         bridge.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData(LightGroupType.Room)]
+    [InlineData(LightGroupType.Zone)]
+    public async Task LightStateChanged_DisplayedLight_RefreshesLightAndGroup(LightGroupType groupType)
+    {
+        var bridge = new Mock<IHueBridgeService>();
+        var multiBridge = new Mock<IMultiBridgeService>();
+        var group = CreateGroup(groupType, false);
+        SetupGroupReads(bridge, group);
+        using var vm = CreateViewModel(bridge.Object, multiBridge);
+        await vm.LoadRoomAsync(group.Id, groupType);
+        var color = HueColor.FromRgb(20, 40, 60);
+
+        multiBridge.Raise(b => b.LightStateChanged += null, new MultiBridgeLightStateChangedEventArgs
+        {
+            BridgeId = "bridge-1",
+            LightId = group.Lights[0].Id,
+            IsOn = true,
+            Brightness = 0.8,
+            Color = color
+        });
+
+        vm.Lights[0].IsOn.Should().BeTrue();
+        vm.Lights[0].Brightness.Should().Be(0.8);
+        vm.Lights[0].CurrentColor.Should().Be(color);
+        vm.IsOn.Should().BeTrue();
+        vm.Brightness.Should().Be(0.8);
+        vm.LightColors.Should().ContainSingle();
+        bridge.Verify(b => b.SetLightOnAsync(It.IsAny<Guid>(), It.IsAny<bool>(), null), Times.Never);
+    }
+
     private static RoomModel CreateGroup(LightGroupType groupType, bool firstLightOn) => new()
     {
         Id = Guid.NewGuid(),
@@ -122,9 +153,9 @@ public class RoomDetailViewModelTests
         }
     }
 
-    private static RoomDetailViewModel CreateViewModel(IHueBridgeService bridge)
+    private static RoomDetailViewModel CreateViewModel(IHueBridgeService bridge, Mock<IMultiBridgeService>? multiBridge = null)
     {
-        var multiBridge = new Mock<IMultiBridgeService>();
+        multiBridge ??= new Mock<IMultiBridgeService>();
         multiBridge.Setup(b => b.GetDefaultBridgeService()).Returns(bridge);
         multiBridge.SetupGet(b => b.ConnectionStatus).Returns(new Dictionary<string, bool>());
         var storage = new Mock<ISceneStorageService>();

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using HueCompanion.Core.Models;
 using HueCompanion.Core.Services.Interfaces;
 using HueCompanion.Core.Utilities;
+using static HueCompanion.Core.Services.Interfaces.UIDispatcher;
 
 namespace HueCompanion.Core.ViewModels;
 
@@ -98,6 +99,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
         _settingsService = settingsService;
 
         _animationService.RoomAnimationChanged += OnRoomAnimationChanged;
+        _multiBridgeService.LightStateChanged += OnMultiBridgeLightStateChanged;
     }
 
     /// <summary>
@@ -465,6 +467,32 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
         }
     }
 
+    private void OnMultiBridgeLightStateChanged(object? sender, MultiBridgeLightStateChangedEventArgs e)
+    {
+        if (_bridgeId != null && !string.Equals(e.BridgeId, _bridgeId, StringComparison.Ordinal))
+            return;
+
+        RunOnUIThread(() =>
+        {
+            var light = Lights.FirstOrDefault(l => l.LightId == e.LightId);
+            if (light == null) return;
+
+            light.UpdateFromBridge(
+                e.IsOn ?? light.IsOn,
+                e.Brightness ?? light.Brightness,
+                e.Color ?? light.CurrentColor,
+                light.ColorTemperature);
+
+            // Grouped-light events are represented by their member light updates, so
+            // keep the room/zone summary in sync with the displayed light collection.
+            _isOn = Lights.Any(l => l.IsOn);
+            OnPropertyChanged(nameof(IsOn));
+            Brightness = Lights.Where(l => l.IsOn).DefaultIfEmpty()
+                .Average(l => l?.Brightness ?? 0);
+            OnPropertyChanged(nameof(LightColors));
+        });
+    }
+
     [RelayCommand]
     private async Task StartAnimatedSceneAsync(AnimatedSceneModel scene)
     {
@@ -609,6 +637,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _animationService.RoomAnimationChanged -= OnRoomAnimationChanged;
+        _multiBridgeService.LightStateChanged -= OnMultiBridgeLightStateChanged;
     }
 }
 
