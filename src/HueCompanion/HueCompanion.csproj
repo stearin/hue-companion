@@ -6,8 +6,8 @@
     <RootNamespace>HueCompanion</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Platforms>x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <RuntimeIdentifier Condition="'$(Platform)'=='' or '$(Platform)'=='AnyCPU'">win-x64</RuntimeIdentifier>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
@@ -19,12 +19,15 @@
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxBundle>Never</AppxBundle>
     <PublishProfile Condition="'$(Platform)'!='' and '$(Platform)'!='AnyCPU'">win-$(Platform).pubxml</PublishProfile>
-    <Version>1.0.3</Version>
+    <Version>1.2.0</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ExcludedLanguages>en-US</ExcludedLanguages>
   </PropertyGroup>
 
   <!-- Build type configuration -->
   <PropertyGroup>
-    <BaseVersion>0.1.0</BaseVersion>
+    <BaseVersion>0.2.0</BaseVersion>
     <ApplicationTitle Condition="'$(DevBuild)' == 'true'">Hue Companion (Dev)</ApplicationTitle>
     <ApplicationTitle Condition="'$(DevBuild)' != 'true'">Hue Companion</ApplicationTitle>
     <AssemblyTitle>$(ApplicationTitle)</AssemblyTitle>
@@ -65,4 +68,7 @@
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
+
+  <Import Project="..\..\RemoveLanguageFolders.targets" />
+
 </Project>

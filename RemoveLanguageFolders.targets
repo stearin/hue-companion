@@ -1,0 +1,29 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Remove language folders from the normal build output, preserving ExcludedLanguages. -->
+  <Target Name="RemoveLanguageFoldersFromBuild" AfterTargets="Build">
+    <ItemGroup>
+      <_BuildLanguagesToKeep Include="$(ExcludedLanguages.Split(';'))"
+                             Condition="'$(ExcludedLanguages)' != ''" />
+      <_BuildLanguageFilesToKeep Include="@(_BuildLanguagesToKeep->'$(OutDir)%(Identity)\*.mui')" />
+      <_BuildLanguageFiles Include="$(OutDir)*\*.mui"
+                           Exclude="@(_BuildLanguageFilesToKeep)" />
+      <_BuildLanguageFolders Include="@(_BuildLanguageFiles->'%(RootDir)%(Directory)')" />
+    </ItemGroup>
+    <RemoveDir Directories="@(_BuildLanguageFolders)" />
+  </Target>
+
+  <!-- Publish has its own output directory and runs after Build. -->
+  <Target Name="RemoveLanguageFoldersFromPublish" AfterTargets="Publish;PublishOnly">
+    <ItemGroup>
+      <_PublishLanguagesToKeep Include="$(ExcludedLanguages.Split(';'))"
+                               Condition="'$(ExcludedLanguages)' != ''" />
+      <_PublishLanguageFilesToKeep Include="@(_PublishLanguagesToKeep->'$(PublishDir)%(Identity)\*.mui')" />
+      <_PublishLanguageFiles Include="$(PublishDir)*\*.mui"
+                             Exclude="@(_PublishLanguageFilesToKeep)" />
+      <_PublishLanguageFolders Include="@(_PublishLanguageFiles->'%(RootDir)%(Directory)')" />
+    </ItemGroup>
+    <RemoveDir Directories="@(_PublishLanguageFolders)" />
+  </Target>
+
+</Project>
