@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "winapp",
+            "request": "launch",
+            "name": "Hue Companion (Debug)",
+            "input": "${workspaceFolder}/src/HueCompanion/HueCompanion.csproj",
+            "configuration": "Debug",
+            "arch": "x64",
+            "properties": {
+                "DevBuild": "true"
+            },
+            "debuggerType": "coreclr",
+            "workingDirectory": "${workspaceFolder}"
+        }
+    ]
+}
