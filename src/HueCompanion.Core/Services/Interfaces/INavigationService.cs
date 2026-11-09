@@ -11,6 +11,11 @@ public interface INavigationService
     bool CanGoBack { get; }
 
     /// <summary>
+    /// Gets whether navigation can go forward.
+    /// </summary>
+    bool CanGoForward { get; }
+
+    /// <summary>
     /// Initializes the navigation service with the content frame.
     /// </summary>
     /// <param name="frame">The frame to use for navigation.</param>
@@ -33,6 +38,11 @@ public interface INavigationService
     /// Navigates back to the previous page.
     /// </summary>
     void GoBack();
+
+    /// <summary>
+    /// Navigates forward to the next page in the navigation history.
+    /// </summary>
+    void GoForward();
 
     /// <summary>
     /// Navigates to a page by type.

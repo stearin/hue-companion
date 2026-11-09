@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Input;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using HueCompanion.Constants;
 using HueCompanion.Core.Models;
@@ -13,6 +15,7 @@ using HueCompanion.Views;
 using HueCompanion.Services;
 using WinRT.Interop;
 using Windows.UI;
+using VirtualKey = Windows.System.VirtualKey;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -122,6 +125,18 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
 
         // Initialize navigation
         _navigationService.Initialize(ContentFrame);
+
+        // WinUI's XAML key converter does not recognize the browser navigation key names.
+        foreach (var key in new[] { VirtualKey.GoBack, VirtualKey.GoForward })
+        {
+            var accelerator = new KeyboardAccelerator { Key = key };
+            accelerator.Invoked += NavigationAccelerator_Invoked;
+            RootGrid.KeyboardAccelerators.Add(accelerator);
+        }
+
+        // Receive side-button presses even when a child control handles pointer input.
+        RootGrid.AddHandler(UIElement.PointerPressedEvent,
+            new PointerEventHandler(RootGrid_PointerPressed), handledEventsToo: true);
 
         // Track navigation changes to update back button
         ContentFrame.Navigated += (s, e) => CanGoBack = _navigationService.CanGoBack;
@@ -473,12 +488,45 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
         return false;
     }
 
+    private bool TryNavigateHistory(bool forward = false)
+    {
+        // Keep dialogs and flyouts in control of input, but allow navigation over tooltips.
+        if (RootGrid.XamlRoot is { } xamlRoot &&
+            VisualTreeHelper.GetOpenPopupsForXamlRoot(xamlRoot).Any(popup => popup.Child is not ToolTip))
+            return false;
+
+        if (forward ? !_navigationService.CanGoForward : !_navigationService.CanGoBack)
+            return false;
+
+        if (forward)
+            _navigationService.GoForward();
+        else
+            _navigationService.GoBack();
+
+        return true;
+    }
+
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_navigationService.CanGoBack)
+        TryNavigateHistory();
+    }
+
+    private void NavigationAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (sender.Key == VirtualKey.Escape && ContentFrame.Content is not (LightDetailPage or RoomDetailPage))
+            return;
+
+        args.Handled = TryNavigateHistory(forward: sender.Key is VirtualKey.Right or VirtualKey.GoForward);
+    }
+
+    private void RootGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        e.Handled |= e.GetCurrentPoint(RootGrid).Properties.PointerUpdateKind switch
         {
-            _navigationService.GoBack();
-        }
+            PointerUpdateKind.XButton1Pressed => TryNavigateHistory(),
+            PointerUpdateKind.XButton2Pressed => TryNavigateHistory(forward: true),
+            _ => false
+        };
     }
 
     private void PaneToggleButton_Click(object sender, RoutedEventArgs e)

@@ -16,6 +16,9 @@ public class NavigationService : INavigationService
     public bool CanGoBack => _frame?.CanGoBack ?? false;
 
     /// <inheritdoc/>
+    public bool CanGoForward => _frame?.CanGoForward ?? false;
+
+    /// <inheritdoc/>
     public void Initialize(object frame)
     {
         if (frame is Frame f)
@@ -44,6 +47,15 @@ public class NavigationService : INavigationService
         if (_frame?.CanGoBack == true)
         {
             _frame.GoBack();
+        }
+    }
+
+    /// <inheritdoc/>
+    public void GoForward()
+    {
+        if (_frame?.CanGoForward == true)
+        {
+            _frame.GoForward();
         }
     }
 
