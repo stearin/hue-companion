@@ -73,10 +73,10 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     /// </summary>
     public event EventHandler? BridgeSetupRequested;
 
-    /// <summary>
-    /// Event raised when user wants to repair bridge connection.
-    /// </summary>
-    public event EventHandler? RepairBridgeRequested;
+    ///// <summary>
+    ///// Event raised when user wants to repair bridge connection.
+    ///// </summary>
+    //public event EventHandler? RepairBridgeRequested;
 
     /// <summary>
     /// Event raised when MCP enabled state changes.

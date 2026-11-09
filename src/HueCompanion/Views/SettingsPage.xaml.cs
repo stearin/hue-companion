@@ -28,7 +28,7 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         ViewModel = App.Services.GetRequiredService<SettingsViewModel>();
-        ViewModel.RepairBridgeRequested += OnRepairBridgeRequested;
+        //ViewModel.RepairBridgeRequested += OnRepairBridgeRequested;
         ViewModel.BridgeSetupRequested += OnBridgeSetupRequested;
         ViewModel.HotkeySettingsChanged += OnHotkeySettingsChanged;
         ViewModel.McpEnabledChanged += OnMcpEnabledChanged;
@@ -41,7 +41,7 @@ public sealed partial class SettingsPage : Page
 
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
     {
-        ViewModel.RepairBridgeRequested -= OnRepairBridgeRequested;
+        //ViewModel.RepairBridgeRequested -= OnRepairBridgeRequested;
         ViewModel.BridgeSetupRequested -= OnBridgeSetupRequested;
         ViewModel.HotkeySettingsChanged -= OnHotkeySettingsChanged;
         ViewModel.McpEnabledChanged -= OnMcpEnabledChanged;

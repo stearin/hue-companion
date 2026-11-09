@@ -70,6 +70,33 @@ public class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadAsync_WithLegacyBridge_MigratesToConfiguredBridges()
+    {
+        // Arrange
+        var settingsPath = Path.Combine(_testDirectory, "settings.json");
+        const string legacyJson = """
+            {
+              "ConfiguredBridge": {
+                "BridgeId": "legacy-id",
+                "IpAddress": "192.168.1.101",
+                "AppKey": "legacy-key"
+              },
+              "ConfiguredBridges": []
+            }
+            """;
+        await File.WriteAllTextAsync(settingsPath, legacyJson, TestContext.Current.CancellationToken);
+
+        // Act
+        await _service.LoadAsync();
+
+        // Assert
+        _service.Settings.ConfiguredBridges.Should().ContainSingle()
+            .Which.BridgeId.Should().Be("legacy-id");
+        (await File.ReadAllTextAsync(settingsPath, TestContext.Current.CancellationToken))
+            .Should().NotContain("ConfiguredBridge\"");
+    }
+
+    [Fact]
     public async Task LoadAsync_WithCorruptedFile_CreatesDefaultSettings()
     {
         // Arrange - write invalid JSON

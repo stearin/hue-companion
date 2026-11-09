@@ -45,7 +45,7 @@ public sealed partial class GamutColorPicker : UserControl
     private double _selectedHue = 0;          // 0-360
     private double _selectedSaturation = 1.0; // 0-1
     private bool _isDragging = false;
-    private bool _isDraggingHue = false;
+    // private bool _isDraggingHue = false;
 
     // Cached max saturation per hue (360 values)
     private double[] _maxSaturationCache = new double[360];

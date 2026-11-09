@@ -38,12 +38,15 @@ public class SettingsService : ISettingsService
     /// <inheritdoc/>
     public async Task LoadAsync()
     {
+        BridgeModel? legacyBridge = null;
+
         try
         {
             if (File.Exists(_settingsPath))
             {
                 var json = await File.ReadAllTextAsync(_settingsPath);
                 Settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                legacyBridge = JsonSerializer.Deserialize<LegacyBridgeSettings>(json)?.ConfiguredBridge;
             }
             else
             {
@@ -57,22 +60,19 @@ public class SettingsService : ISettingsService
         }
 
         // Migrate legacy single bridge to multi-bridge list (runs once at startup)
-        await MigrateLegacyBridgeAsync();
+        await MigrateLegacyBridgeAsync(legacyBridge);
     }
 
     /// <summary>
     /// Migrates legacy single bridge configuration to the multi-bridge list.
     /// </summary>
-    private async Task MigrateLegacyBridgeAsync()
+    private async Task MigrateLegacyBridgeAsync(BridgeModel? legacyBridge)
     {
-        #pragma warning disable CS0618 // Type or member is obsolete
-        if (Settings.ConfiguredBridge != null && Settings.ConfiguredBridges.Count == 0)
+        if (legacyBridge != null && Settings.ConfiguredBridges.Count == 0)
         {
-            Settings.ConfiguredBridges.Add(Settings.ConfiguredBridge);
-            Settings.ConfiguredBridge = null;
+            Settings.ConfiguredBridges.Add(legacyBridge);
             await SaveAsync();
         }
-        #pragma warning restore CS0618
     }
 
     /// <inheritdoc/>
@@ -92,13 +92,11 @@ public class SettingsService : ISettingsService
         if (hasMultiBridge)
             return Task.FromResult(true);
 
-        // Check legacy single bridge for backward compatibility
-        #pragma warning disable CS0618 // Type or member is obsolete
-        var hasLegacyBridge = Settings.ConfiguredBridge != null
-            && !string.IsNullOrEmpty(Settings.ConfiguredBridge.AppKey)
-            && !string.IsNullOrEmpty(Settings.ConfiguredBridge.IpAddress);
-        #pragma warning restore CS0618
+        return Task.FromResult(false);
+    }
 
-        return Task.FromResult(hasLegacyBridge);
+    private sealed class LegacyBridgeSettings
+    {
+        public BridgeModel? ConfiguredBridge { get; init; }
     }
 }

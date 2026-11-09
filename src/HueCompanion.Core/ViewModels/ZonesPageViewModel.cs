@@ -33,10 +33,10 @@ public partial class ZonesPageViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string? _errorMessage;
 
-    /// <summary>
-    /// Event raised when a light is tapped for navigation.
-    /// </summary>
-    public event EventHandler<(Guid LightId, string? BridgeId)>? LightTapped;
+    // /// <summary>
+    // /// Event raised when a light is tapped for navigation.
+    // /// </summary>
+    // public event EventHandler<(Guid LightId, string? BridgeId)>? LightTapped;
 
     /// <summary>
     /// Event raised when a zone header is tapped for navigation.

@@ -385,7 +385,6 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
 
         // Update on state based on brightness
         // Set field directly to update UI without triggering OnIsOnChanged (which would send redundant API call)
-#pragma warning disable MVVMTK0034
         if (Brightness > 0 && !IsOn)
         {
             _isOn = true;
@@ -396,7 +395,6 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
             _isOn = false;
             OnPropertyChanged(nameof(IsOn));
         }
-#pragma warning restore MVVMTK0034
     }
 
     [RelayCommand]

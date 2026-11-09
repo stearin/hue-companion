@@ -109,117 +109,11 @@ public record NavigationTarget
         };
     }
 
-    /// <summary>
-    /// Resolves command-line arguments to a navigation target, looking up names via bridge service.
-    /// </summary>
-    /// <param name="args">Parsed command-line arguments.</param>
-    /// <param name="bridgeService">Bridge service for name resolution.</param>
-    /// <returns>Navigation target, or null if resolution failed.</returns>
-    [Obsolete("Use overload with IMultiBridgeService for multi-bridge support")]
-    public static async Task<NavigationTarget?> ResolveAsync(CommandLineArgs args, IHueBridgeService bridgeService)
-    {
-        if (args.Page == null) return null;
-
-        var page = args.Page.ToLowerInvariant();
-
-        // For pages that don't require ID, use sync method
-        if (!RequiresId(page))
-        {
-            return FromCommandLineArgs(args);
-        }
-
-        // Resolve ID from name if provided
-        Guid? resolvedId = args.Id;
-
-        if (!resolvedId.HasValue && !string.IsNullOrEmpty(args.Name))
-        {
-            resolvedId = await ResolveNameToIdAsync(page, args.Name, bridgeService);
-            if (!resolvedId.HasValue)
-            {
-                System.Diagnostics.Debug.WriteLine($"Could not resolve name '{args.Name}' for page '{page}'");
-                return null;
-            }
-        }
-
-        if (!resolvedId.HasValue) return null;
-
-        return page switch
-        {
-            "room" => new NavigationTarget
-            {
-                PageType = typeof(RoomDetailPage),
-                Parameter = new NavigationTag(LightGroupType.Room, resolvedId.Value)
-            },
-            "zone" => new NavigationTarget
-            {
-                PageType = typeof(RoomDetailPage),
-                Parameter = new NavigationTag(LightGroupType.Zone, resolvedId.Value)
-            },
-            "light" => new NavigationTarget
-            {
-                PageType = typeof(LightDetailPage),
-                Parameter = resolvedId.Value
-            },
-            _ => null
-        };
-    }
-
     private static bool RequiresId(string page) =>
         page is "room" or "zone" or "light";
 
-    private static async Task<Guid?> ResolveNameToIdAsync(string page, string name, IHueBridgeService bridgeService)
-    {
-        var normalizedName = NormalizeName(name);
-
-        return page switch
-        {
-            "room" => await FindRoomByNameAsync(normalizedName, bridgeService),
-            "zone" => await FindZoneByNameAsync(normalizedName, bridgeService),
-            "light" => await FindLightByNameAsync(normalizedName, bridgeService),
-            _ => null
-        };
-    }
-
     private static string NormalizeName(string name) =>
         name.ToLowerInvariant().Replace("-", " ").Replace("_", " ").Trim();
-
-    private static async Task<Guid?> FindRoomByNameAsync(string name, IHueBridgeService bridgeService)
-    {
-        var result = await bridgeService.GetRoomsAsync();
-        if (!result.IsSuccess || result.Value == null) return null;
-
-        var room = result.Value.FirstOrDefault(r =>
-            NormalizeName(r.Name ?? "") == name ||
-            (r.Name ?? "").Equals(name, StringComparison.OrdinalIgnoreCase));
-        return room?.Id;
-    }
-
-    private static async Task<Guid?> FindZoneByNameAsync(string name, IHueBridgeService bridgeService)
-    {
-        var result = await bridgeService.GetZonesAsync();
-        if (!result.IsSuccess || result.Value == null) return null;
-
-        var zone = result.Value.FirstOrDefault(z =>
-            NormalizeName(z.Name ?? "") == name ||
-            (z.Name ?? "").Equals(name, StringComparison.OrdinalIgnoreCase));
-        return zone?.Id;
-    }
-
-    private static async Task<Guid?> FindLightByNameAsync(string name, IHueBridgeService bridgeService)
-    {
-        // Get all lights from all rooms
-        var result = await bridgeService.GetRoomsAsync();
-        if (!result.IsSuccess || result.Value == null) return null;
-
-        foreach (var room in result.Value)
-        {
-            var light = room.Lights.FirstOrDefault(l =>
-                NormalizeName(l.Name ?? "") == name ||
-                (l.Name ?? "").Equals(name, StringComparison.OrdinalIgnoreCase));
-            if (light != null) return light.Id;
-        }
-        return null;
-    }
 
     private static async Task<Guid?> ResolveNameToIdMultiBridgeAsync(string page, string name, IMultiBridgeService multiBridgeService)
     {
