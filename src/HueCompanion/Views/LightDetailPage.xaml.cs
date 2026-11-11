@@ -98,6 +98,9 @@ public sealed partial class LightDetailPage : Page
         }
         else if (e.PropertyName == nameof(LightDetailViewModel.BrightnessPercent))
         {
+            // Navigation sets the initial slider value after loading completes.
+            if (ViewModel.IsLoading) return;
+
             if (DispatcherQueue?.HasThreadAccess == true)
             {
                 AnimateSliderToValue(BrightnessSlider, ViewModel.BrightnessPercent);

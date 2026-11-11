@@ -23,6 +23,7 @@ public partial class LightDetailViewModel : ObservableObject
     private bool _isOn;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BrightnessPercent))]
     private double _brightness;
 
     [ObservableProperty]
@@ -178,7 +179,6 @@ public partial class LightDetailViewModel : ObservableObject
     private async Task SetBrightnessAsync(double brightness)
     {
         Brightness = Math.Clamp(brightness, 0.0, 1.0);
-        OnPropertyChanged(nameof(BrightnessPercent));
 
         if (_bridgeService != null)
         {
