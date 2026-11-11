@@ -21,7 +21,59 @@ This document describes the complete versioning, testing, and release flow for H
 
 ## 1. Local Development
 
+### VS Code on Windows and WSL
+
+The `HueCompanion` UI project uses WinUI 3 and requires Windows build tools,
+including the Windows SDK manifest and XAML compilers. Build, run, and debug
+the UI in a local Windows VS Code window with the Windows .NET 9 SDK and
+Windows app development tools installed. The existing `Hue Companion (Debug)`
+launch configuration is for Windows.
+
+If VS Code shows `WSL` or `Dev Container` in the remote indicator, use
+**Remote: Reopen Folder Locally** for WSL or **Dev Containers: Reopen Folder
+Locally** for a container. Open the Windows checkout path, for example
+`C:\Users\ltr\source\repos\stearin\hue-companion`, and load
+`HueCompanion.sln`. Run UI build commands in Windows PowerShell.
+
+For Core, MCP, and unit test development in WSL or a Linux container, use
+**File > Open Workspace from File** and select
+`HueCompanion.Wsl.code-workspace`. This selects `HueCompanion.Wsl.slnf`,
+which loads the three .NET 9 projects without loading the Windows UI project.
+UI C# and XAML IntelliSense and UI debugging require the Windows workspace.
+
+Opening UI C# files in the WSL workspace can otherwise show "Project
+'HueCompanion' is not part of this solution". The WSL workspace suppresses
+these notifications because the UI is deliberately excluded. **Add Project
+to Solution** does not fix this: the project is already in the underlying
+solution, but is excluded by the WSL filter. Suppressing notifications does
+not enable full UI IntelliSense; reopen the full solution on Windows for
+that. Run **Developer: Reload Window** after updating the workspace settings.
+
+```bash
+# Build the projects included in the WSL solution filter
+dotnet build HueCompanion.Wsl.slnf -p:Platform=x64
+
+# Run unit tests without building the Windows UI
+dotnet test src/HueCompanion.Tests/HueCompanion.Tests.csproj
+```
+
+If a design-time build reports `MSB3073` from
+`Microsoft.WindowsAppSDK.SelfContained.targets` while running `mt.exe` from
+`/home/.../.nuget/packages`, the Windows UI project is being loaded by Linux
+MSBuild. Switch to the WSL workspace above or reopen the full solution on
+Windows. `EnableWindowsTargeting` allows Windows targeting packs to restore;
+it does not make Windows SDK tools run as native Linux tools. Do not edit
+the downloaded NuGet `.targets` file to suppress the failure.
+
+When switching between Linux and Windows builds in the same checkout, each
+OS must restore its own NuGet assets. If restore or build still reports
+paths from the other OS, remove the affected projects' generated `bin` and
+`obj` directories and restore again on the intended OS. Separate checkouts
+avoid sharing those build outputs.
+
 ### Build Commands
+
+Run these UI commands on Windows:
 
 ```bash
 # Build (default platform)

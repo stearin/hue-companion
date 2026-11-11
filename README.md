@@ -190,11 +190,17 @@ For detailed CI/CD documentation including test coverage, versioning, and troubl
 
 ### Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Windows for building and running the WinUI desktop app
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/)
 - Visual Studio 2022 (optional, for IDE development)
 
 ### Build from Command Line
+
+For VS Code in WSL or a Linux container, open
+`HueCompanion.Wsl.code-workspace` to work on Core, MCP, and tests. Build and
+debug the desktop UI from a local Windows VS Code window. See the
+[Windows and WSL setup guide](docs/DEVELOPMENT.md#vs-code-on-windows-and-wsl).
 
 ```bash
 # Restore and build

@@ -1,0 +1,11 @@
+{
+  "solution": {
+    "path": "HueCompanion.sln",
+    "projects": [
+      "src\\HueCompanion\\HueCompanion.csproj",
+      "src\\HueCompanion.Core\\HueCompanion.Core.csproj",
+      "src\\HueCompanion.Mcp\\HueCompanion.Mcp.csproj",
+      "src\\HueCompanion.Tests\\HueCompanion.Tests.csproj"
+    ]
+  }
+}

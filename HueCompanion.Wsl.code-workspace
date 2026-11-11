@@ -1,0 +1,11 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "dotnet.defaultSolution": "HueCompanion.Wsl.slnf",
+    "dotnet.server.suppressMiscellaneousFilesToasts": true
+  }
+}
