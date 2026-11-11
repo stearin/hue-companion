@@ -19,10 +19,11 @@
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxBundle>Never</AppxBundle>
     <PublishProfile Condition="'$(Platform)'!='' and '$(Platform)'!='AnyCPU'">win-$(Platform).pubxml</PublishProfile>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ExcludedLanguages>en-US</ExcludedLanguages>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <!-- Build type configuration -->
