@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HueCompanion.Core.Models;
 using HueCompanion.Core.Services.Interfaces;
-using HueCompanion.Core.Utilities;
 
 namespace HueCompanion.Core.ViewModels;
 
@@ -135,8 +134,7 @@ public partial class LightDetailViewModel : ObservableObject
 
         var light = lightResult.Value!;
         LightName = light.Name;
-        _isOn = light.IsOn; // Use backing field to avoid triggering OnIsOnChanged → SetLightOnAsync
-        OnPropertyChanged(nameof(IsOn));
+        IsOn = light.IsOn;
         Brightness = light.Brightness;
         SupportsColor = light.SupportsColor;
         SupportsColorTemperature = light.SupportsColorTemperature;
@@ -169,10 +167,12 @@ public partial class LightDetailViewModel : ObservableObject
         IsLoading = false;
     }
 
-    partial void OnIsOnChanged(bool value)
+    [RelayCommand]
+    private async Task ToggleAsync()
     {
+        IsOn = !IsOn;
         if (_bridgeService == null) return;
-        _bridgeService.SetLightOnAsync(_lightId, value).FireAndForget();
+        await _bridgeService.SetLightOnAsync(_lightId, IsOn);
     }
 
     [RelayCommand]
@@ -185,12 +185,10 @@ public partial class LightDetailViewModel : ObservableObject
             await _bridgeService.SetLightBrightnessAsync(_lightId, Brightness);
         }
 
-        // Auto-turn on if brightness > 0
-        // Set field directly to update UI without triggering OnIsOnChanged (which would send redundant API call)
+        // The brightness command already turns the light on.
         if (Brightness > 0 && !IsOn)
         {
-            _isOn = true;
-            OnPropertyChanged(nameof(IsOn));
+            IsOn = true;
         }
     }
 

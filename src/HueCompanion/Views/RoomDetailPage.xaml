@@ -150,7 +150,7 @@
                                   Grid.Column="5"
                                   Style="{StaticResource GradientToggleSwitchStyle}"
                                   VerticalAlignment="Center"
-                                  IsOn="{x:Bind ViewModel.IsOn, Mode=TwoWay}"
+                                  IsOn="{x:Bind ViewModel.IsOn, Mode=OneWay}"
                                   Tapped="RoomToggle_Tapped"/>
                 </Grid>
 

@@ -5,7 +5,7 @@
     }
   ],
   "settings": {
-    "dotnet.defaultSolution": "HueCompanion.Wsl.slnf",
+    "dotnet.defaultSolution": "HueCompanion.sln",
     "dotnet.server.suppressMiscellaneousFilesToasts": true
   }
 }

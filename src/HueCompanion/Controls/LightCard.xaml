@@ -203,7 +203,7 @@
                     <ToggleSwitch x:Name="LightToggle"
                                   Grid.Column="2"
                                   Style="{StaticResource GradientToggleSwitchStyle}"
-                                  IsOn="{Binding IsOn, Mode=TwoWay}"
+                                  IsOn="{Binding IsOn, Mode=OneWay}"
                                   Tapped="LightToggle_Tapped"/>
                 </Grid>
             </Grid>

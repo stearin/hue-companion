@@ -10,7 +10,7 @@ namespace HueCompanion.Core.ViewModels;
 public interface IRoomCardViewModel : INotifyPropertyChanged
 {
     string RoomName { get; }
-    bool IsOn { get; set; }
+    bool IsOn { get; }
     double Brightness { get; }
     string RoomIcon { get; }
     int LightCount { get; }
@@ -20,6 +20,7 @@ public interface IRoomCardViewModel : INotifyPropertyChanged
     bool UseBlackText { get; }
     bool SupportsColor { get; }
     ICommand TapRoomCommand { get; }
+    ICommand ToggleCommand { get; }
     ICommand SetBrightnessCommand { get; }
     ICommand? SetColorCommand { get; }
 }

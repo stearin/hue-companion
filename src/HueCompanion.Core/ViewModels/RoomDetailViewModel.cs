@@ -38,6 +38,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
     private bool _isOn;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BrightnessPercent))]
     private double _brightness;
 
     [ObservableProperty]
@@ -178,8 +179,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
         RoomName = group.DisplayName;
         _roomArchetype = group.Archetype;
         RoomIconGlyph = RoomIconHelper.GetIconForRoom(_groupId, _roomArchetype, _settingsService.Settings.CustomRoomIcons);
-        _isOn = group.IsOn; // Use backing field to avoid triggering OnIsOnChanged → SetRoomOnAsync
-        OnPropertyChanged(nameof(IsOn));
+        IsOn = group.IsOn;
         Brightness = group.Brightness;
 
         // Load lights
@@ -295,10 +295,17 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
 
     partial void OnIsOnChanged(bool value)
     {
+        OnPropertyChanged(nameof(LightColors));
+    }
+
+    [RelayCommand]
+    private async Task ToggleAsync()
+    {
+        IsOn = !IsOn;
         // Update individual light states to match room state (UI only, no API calls)
         foreach (var light in Lights)
         {
-            light.UpdateFromBridge(value, light.Brightness, light.CurrentColor);
+            light.UpdateFromBridge(IsOn, light.Brightness, light.CurrentColor);
         }
 
         OnPropertyChanged(nameof(LightColors));
@@ -306,15 +313,9 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
         if (_bridgeService == null) return;
 
         if (_groupType == LightGroupType.Room)
-            _bridgeService.SetRoomOnAsync(_groupId, value).FireAndForget();
+            await _bridgeService.SetRoomOnAsync(_groupId, IsOn);
         else
-            _bridgeService.SetZoneOnAsync(_groupId, value).FireAndForget();
-    }
-
-    partial void OnBrightnessChanged(double value)
-    {
-        // Notify BrightnessPercent when Brightness changes (e.g., from scene activation)
-        OnPropertyChanged(nameof(BrightnessPercent));
+            await _bridgeService.SetZoneOnAsync(_groupId, IsOn);
     }
 
     [RelayCommand]
@@ -327,7 +328,6 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
             return;
 
         Brightness = requestedBrightness;
-        OnPropertyChanged(nameof(BrightnessPercent));
 
         if (_bridgeService == null) return;
 
@@ -452,9 +452,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
             }
         }
 
-        // Update room state (use backing fields to avoid triggering API calls)
-        _isOn = group.IsOn;
-        OnPropertyChanged(nameof(IsOn));
+        IsOn = group.IsOn;
         Brightness = group.Brightness;
     }
 
@@ -485,8 +483,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
 
             // Grouped-light events are represented by their member light updates, so
             // keep the room/zone summary in sync with the displayed light collection.
-            _isOn = Lights.Any(l => l.IsOn);
-            OnPropertyChanged(nameof(IsOn));
+            IsOn = Lights.Any(l => l.IsOn);
             Brightness = Lights.Where(l => l.IsOn).DefaultIfEmpty()
                 .Average(l => l?.Brightness ?? 0);
             OnPropertyChanged(nameof(LightColors));
@@ -654,12 +651,13 @@ public partial class LightItemViewModel : ObservableObject
     public string? BridgeId { get; set; }
 
     [ObservableProperty]
-    private string _name;
+    private string _name = string.Empty;
 
     [ObservableProperty]
     private bool _isOn;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BrightnessPercent))]
     private double _brightness;
 
     [ObservableProperty]
@@ -732,13 +730,13 @@ public partial class LightItemViewModel : ObservableObject
         _light = light;
         _bridgeService = bridgeService;
 
-        _name = light.Name;
-        _isOn = light.IsOn;
-        _brightness = light.Brightness;
-        _supportsColor = light.SupportsColor;
-        _currentColor = light.CurrentColor;
-        _supportsColorTemperature = light.SupportsColorTemperature;
-        _colorTemperature = light.ColorTemperature;
+        Name = light.Name;
+        IsOn = light.IsOn;
+        Brightness = light.Brightness;
+        SupportsColor = light.SupportsColor;
+        CurrentColor = light.CurrentColor;
+        SupportsColorTemperature = light.SupportsColorTemperature;
+        ColorTemperature = light.ColorTemperature;
     }
 
     partial void OnIsOnChanged(bool value)
@@ -746,7 +744,13 @@ public partial class LightItemViewModel : ObservableObject
         OnPropertyChanged(nameof(IconOpacity));
         OnPropertyChanged(nameof(CurrentColorRgb));
         OnPropertyChanged(nameof(ColorModeLabel));
-        _bridgeService.SetLightOnAsync(LightId, value).FireAndForget();
+    }
+
+    [RelayCommand]
+    private async Task ToggleAsync()
+    {
+        IsOn = !IsOn;
+        await _bridgeService.SetLightOnAsync(LightId, IsOn);
     }
 
     partial void OnCurrentColorChanged(HueColor? value)
@@ -765,21 +769,11 @@ public partial class LightItemViewModel : ObservableObject
     /// </summary>
     public void UpdateFromBridge(bool isOn, double brightness, HueColor? color, int? colorTemperature = null)
     {
-        // Use SetProperty to update fields directly and notify, avoiding OnXxxChanged partial methods
-        // that would trigger API calls
-        if (_isOn != isOn)
-        {
-            _isOn = isOn;
-            OnPropertyChanged(nameof(IsOn));
-            OnPropertyChanged(nameof(IconOpacity));
-            OnPropertyChanged(nameof(CurrentColorRgb));
-        }
+        IsOn = isOn;
 
-        if (Math.Abs(_brightness - brightness) > 0.001)
+        if (Math.Abs(Brightness - brightness) > 0.001)
         {
-            _brightness = brightness;
-            OnPropertyChanged(nameof(Brightness));
-            OnPropertyChanged(nameof(BrightnessPercent));
+            Brightness = brightness;
         }
 
         // Color can use the property setter since it doesn't trigger API calls
@@ -801,7 +795,6 @@ public partial class LightItemViewModel : ObservableObject
             return;
 
         Brightness = requestedBrightness;
-        OnPropertyChanged(nameof(BrightnessPercent));
 
         await _bridgeService.SetLightBrightnessAsync(LightId, Brightness);
     }

@@ -9,6 +9,35 @@ namespace HueCompanion.Tests.ViewModels;
 
 public class LightDetailViewModelTests
 {
+    [Fact]
+    public async Task UserCommands_WriteOnce_WhilePropertyAssignmentsOnlyUpdateState()
+    {
+        var id = Guid.NewGuid();
+        var bridge = new Mock<IHueBridgeService>();
+        bridge.Setup(b => b.GetLightAsync(id)).ReturnsAsync(Result<LightModel>.Success(new() { Id = id }));
+        var multiBridge = new Mock<IMultiBridgeService>();
+        multiBridge.Setup(b => b.GetDefaultBridgeService()).Returns(bridge.Object);
+        var vm = new LightDetailViewModel(multiBridge.Object);
+        await vm.LoadLightAsync(id);
+        bridge.Invocations.Clear();
+
+        vm.IsOn = true;
+        vm.Brightness = 0.657;
+        vm.BrightnessPercent.Should().Be(65);
+        bridge.VerifyNoOtherCalls();
+
+        await vm.ToggleCommand.ExecuteAsync(null);
+        vm.IsOn.Should().BeFalse();
+        bridge.Verify(b => b.SetLightOnAsync(id, false, null), Times.Once);
+        bridge.VerifyNoOtherCalls();
+        bridge.Invocations.Clear();
+
+        await vm.SetBrightnessCommand.ExecuteAsync(0.8);
+        vm.IsOn.Should().BeTrue();
+        bridge.Verify(b => b.SetLightBrightnessAsync(id, 0.8, null), Times.Once);
+        bridge.VerifyNoOtherCalls();
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

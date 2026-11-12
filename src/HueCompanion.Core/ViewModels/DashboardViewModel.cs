@@ -240,19 +240,21 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
         : PinnedItemType.Room;
 
     [ObservableProperty]
-    private string _roomName;
+    private string _roomName = string.Empty;
 
     [ObservableProperty]
     private bool _isOn;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BrightnessPercent))]
+    [NotifyPropertyChangedFor(nameof(BrightnessDisplayText))]
     private double _brightness;
 
     [ObservableProperty]
     private HueColor? _dominantColor;
 
     [ObservableProperty]
-    private string _roomIcon;
+    private string _roomIcon = string.Empty;
 
     [ObservableProperty]
     private int _lightCount;
@@ -271,6 +273,7 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
 
     // Explicit ICommand implementations for interface
     ICommand IRoomCardViewModel.TapRoomCommand => TapRoomCommand;
+    ICommand IRoomCardViewModel.ToggleCommand => ToggleCommand;
     ICommand IRoomCardViewModel.SetBrightnessCommand => SetBrightnessCommand;
     ICommand? IRoomCardViewModel.SetColorCommand => SetColorCommand;
 
@@ -345,19 +348,16 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
         _room = room;
         _bridgeService = bridgeService;
 
-        _roomName = room.DisplayName;
-        _isOn = room.IsOn;
-        _brightness = room.Brightness;
-        _dominantColor = room.DominantColor;
-        _lightCount = room.Lights.Count;
-        _roomIcon = RoomIconHelper.GetIconForRoom(room.Id, room.Archetype, customIcons);
+        RoomName = room.DisplayName;
+        IsOn = room.IsOn;
+        Brightness = room.Brightness;
+        DominantColor = room.DominantColor;
+        LightCount = room.Lights.Count;
+        RoomIcon = RoomIconHelper.GetIconForRoom(room.Id, room.Archetype, customIcons);
     }
 
     partial void OnIsOnChanged(bool value)
     {
-        // Send command to bridge when toggle changes
-        _bridgeService.SetRoomOnAsync(RoomId, value).FireAndForget();
-
         // Invalidate cached colors and update computed properties
         InvalidateLightColorsCache();
     }
@@ -366,6 +366,16 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
     {
         // Invalidate cached colors and update computed properties when brightness changes
         InvalidateLightColorsCache();
+    }
+
+    [RelayCommand]
+    private async Task ToggleAsync()
+    {
+        IsOn = !IsOn;
+        if (_room.GroupType == LightGroupType.Zone)
+            await _bridgeService.SetZoneOnAsync(RoomId, IsOn);
+        else
+            await _bridgeService.SetRoomOnAsync(RoomId, IsOn);
     }
 
     partial void OnDominantColorChanged(HueColor? value)
@@ -378,23 +388,14 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
     private async Task SetBrightnessAsync(double brightness)
     {
         Brightness = Math.Clamp(brightness, 0.0, 1.0);
-        OnPropertyChanged(nameof(BrightnessPercent));
-        OnPropertyChanged(nameof(BrightnessDisplayText));
 
-        await _bridgeService.SetRoomBrightnessAsync(RoomId, Brightness);
+        if (_room.GroupType == LightGroupType.Zone)
+            await _bridgeService.SetZoneBrightnessAsync(RoomId, Brightness);
+        else
+            await _bridgeService.SetRoomBrightnessAsync(RoomId, Brightness);
 
-        // Update on state based on brightness
-        // Set field directly to update UI without triggering OnIsOnChanged (which would send redundant API call)
-        if (Brightness > 0 && !IsOn)
-        {
-            _isOn = true;
-            OnPropertyChanged(nameof(IsOn));
-        }
-        else if (Brightness == 0 && IsOn)
-        {
-            _isOn = false;
-            OnPropertyChanged(nameof(IsOn));
-        }
+        // A brightness command already sets the power state on the bridge.
+        IsOn = Brightness > 0;
     }
 
     [RelayCommand]
@@ -467,8 +468,6 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
         var coloredLight = _room.Lights.FirstOrDefault(l => l.IsOn && l.CurrentColor != null);
         DominantColor = coloredLight?.CurrentColor;
 
-        OnPropertyChanged(nameof(BrightnessPercent));
-        OnPropertyChanged(nameof(BrightnessDisplayText));
         InvalidateLightColorsCache();
     }
 

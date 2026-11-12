@@ -126,7 +126,7 @@
                     <ToggleSwitch x:Name="RoomToggle"
                                   Grid.Column="0"
                                   Style="{StaticResource GradientToggleSwitchStyle}"
-                                  IsOn="{Binding IsOn, Mode=TwoWay}"
+                                  IsOn="{Binding IsOn, Mode=OneWay}"
                                   Tapped="RoomToggle_Tapped"
                                   VerticalAlignment="Center"/>
 

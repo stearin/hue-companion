@@ -538,7 +538,7 @@ public sealed partial class RoomDetailPage : Page
 
     private void RoomToggle_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        ViewModel.IsOn = !ViewModel.IsOn;
+        ViewModel.ToggleCommand.Execute(null);
         e.Handled = true;
     }
 

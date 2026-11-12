@@ -10,6 +10,57 @@ namespace HueCompanion.Tests.ViewModels;
 public class RoomDetailViewModelTests
 {
     [Theory]
+    [InlineData(LightGroupType.Room)]
+    [InlineData(LightGroupType.Zone)]
+    public async Task ToggleAsync_UpdatesMembers_AndWritesOnlyToSelectedGroup(LightGroupType groupType)
+    {
+        var bridge = new Mock<IHueBridgeService>();
+        var group = CreateGroup(groupType, true);
+        SetupGroupReads(bridge, group);
+        using var vm = CreateViewModel(bridge.Object);
+        await vm.LoadRoomAsync(group.Id, groupType);
+        bridge.Invocations.Clear();
+
+        // Summary state changes must preserve the individual lights' mixed state.
+        vm.IsOn = false;
+        vm.IsOn = true;
+        vm.Lights.Select(l => l.IsOn).Should().Equal(true, false);
+        bridge.VerifyNoOtherCalls();
+
+        await vm.ToggleCommand.ExecuteAsync(null);
+
+        vm.IsOn.Should().BeFalse();
+        vm.Lights.Should().OnlyContain(l => !l.IsOn);
+        if (groupType == LightGroupType.Room)
+            bridge.Verify(b => b.SetRoomOnAsync(group.Id, false, null), Times.Once);
+        else
+            bridge.Verify(b => b.SetZoneOnAsync(group.Id, false), Times.Once);
+        bridge.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task LightToggleAsync_WritesOnce_WhileStateSynchronizationOnlyNotifies()
+    {
+        var bridge = new Mock<IHueBridgeService>();
+        var id = Guid.NewGuid();
+        var vm = new LightItemViewModel(new LightModel { Id = id }, bridge.Object);
+        var notifications = new List<string?>();
+        vm.PropertyChanged += (_, e) => notifications.Add(e.PropertyName);
+
+        vm.UpdateFromBridge(true, 0.657, HueColor.White);
+
+        notifications.Should().Contain(new[] { "IsOn", "Brightness", "BrightnessPercent", "ColorModeLabel" });
+        vm.BrightnessPercent.Should().Be(65);
+        bridge.VerifyNoOtherCalls();
+
+        await vm.ToggleCommand.ExecuteAsync(null);
+
+        vm.IsOn.Should().BeFalse();
+        bridge.Verify(b => b.SetLightOnAsync(id, false, null), Times.Once);
+        bridge.VerifyNoOtherCalls();
+    }
+
+    [Theory]
     [InlineData(LightGroupType.Room, false)]
     [InlineData(LightGroupType.Room, true)]
     [InlineData(LightGroupType.Zone, false)]

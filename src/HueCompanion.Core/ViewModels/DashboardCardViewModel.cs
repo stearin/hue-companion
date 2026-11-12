@@ -46,6 +46,8 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
     private bool _isOn;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BrightnessPercent))]
+    [NotifyPropertyChangedFor(nameof(BrightnessDisplayText))]
     private double _brightness;
 
     [ObservableProperty]
@@ -80,6 +82,7 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
 
     // Explicit ICommand implementations for interface
     ICommand IRoomCardViewModel.TapRoomCommand => TapRoomCommand;
+    ICommand IRoomCardViewModel.ToggleCommand => ToggleCommand;
     ICommand IRoomCardViewModel.SetBrightnessCommand => SetBrightnessCommand;
     ICommand? IRoomCardViewModel.SetColorCommand => SetColorCommand;
 
@@ -166,7 +169,7 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
         ItemType = room.GroupType == LightGroupType.Zone ? PinnedItemType.Zone : PinnedItemType.Room;
 
         RoomName = room.DisplayName;
-        _isOn = room.IsOn; // Use backing field to avoid triggering OnIsOnChanged → SetRoomOnAsync
+        IsOn = room.IsOn;
         Brightness = room.Brightness;
         DominantColor = room.DominantColor;
         LightCount = room.Lights.Count;
@@ -193,7 +196,7 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
         ItemType = PinnedItemType.Light;
 
         RoomName = light.Name;
-        _isOn = light.IsOn; // Use backing field to avoid triggering OnIsOnChanged → SetLightOnAsync
+        IsOn = light.IsOn;
         Brightness = light.Brightness;
         DominantColor = light.CurrentColor;
         LightCount = 1;
@@ -212,36 +215,45 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
 
     partial void OnIsOnChanged(bool value)
     {
-        var bridgeService = GetBridgeService();
-        if (bridgeService == null) return;
-
-        if (_room != null)
-        {
-            bridgeService.SetRoomOnAsync(ItemId, value).FireAndForget();
-        }
-        else if (_light != null)
-        {
-            bridgeService.SetLightOnAsync(ItemId, value).FireAndForget();
-        }
-
         OnPropertyChanged(nameof(BackgroundColorRgb));
         OnPropertyChanged(nameof(UseBlackText));
         OnPropertyChanged(nameof(LightColors));
     }
 
     [RelayCommand]
+    private async Task ToggleAsync()
+    {
+        IsOn = !IsOn;
+        var bridgeService = GetBridgeService();
+        if (bridgeService == null) return;
+
+        if (_room != null)
+        {
+            if (_room.GroupType == LightGroupType.Zone)
+                await bridgeService.SetZoneOnAsync(ItemId, IsOn);
+            else
+                await bridgeService.SetRoomOnAsync(ItemId, IsOn);
+        }
+        else if (_light != null)
+        {
+            await bridgeService.SetLightOnAsync(ItemId, IsOn);
+        }
+    }
+
+    [RelayCommand]
     private async Task SetBrightnessAsync(double brightness)
     {
         Brightness = Math.Clamp(brightness, 0.0, 1.0);
-        OnPropertyChanged(nameof(BrightnessPercent));
-        OnPropertyChanged(nameof(BrightnessDisplayText));
 
         var bridgeService = GetBridgeService();
         if (bridgeService != null)
         {
             if (_room != null)
             {
-                await bridgeService.SetRoomBrightnessAsync(ItemId, Brightness);
+                if (_room.GroupType == LightGroupType.Zone)
+                    await bridgeService.SetZoneBrightnessAsync(ItemId, Brightness);
+                else
+                    await bridgeService.SetRoomBrightnessAsync(ItemId, Brightness);
             }
             else if (_light != null)
             {
@@ -249,18 +261,8 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
             }
         }
 
-        // Update on state based on brightness
-        // Set field directly to update UI without triggering OnIsOnChanged (which would send redundant API call)
-        if (Brightness > 0 && !IsOn)
-        {
-            _isOn = true;
-            OnPropertyChanged(nameof(IsOn));
-        }
-        else if (Brightness == 0 && IsOn)
-        {
-            _isOn = false;
-            OnPropertyChanged(nameof(IsOn));
-        }
+        // A brightness command already sets the power state on the bridge.
+        IsOn = Brightness > 0;
     }
 
     [RelayCommand]
@@ -490,8 +492,6 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
             if (e.Color != null) DominantColor = e.Color;
         }
 
-        OnPropertyChanged(nameof(BrightnessPercent));
-        OnPropertyChanged(nameof(BrightnessDisplayText));
         OnPropertyChanged(nameof(BackgroundColorRgb));
         OnPropertyChanged(nameof(UseBlackText));
         OnPropertyChanged(nameof(LightColors));

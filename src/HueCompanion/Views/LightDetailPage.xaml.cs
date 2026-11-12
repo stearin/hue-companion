@@ -326,7 +326,7 @@ public sealed partial class LightDetailPage : Page
 
     private void LightToggle_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        ViewModel.IsOn = !ViewModel.IsOn;
+        ViewModel.ToggleCommand.Execute(null);
         e.Handled = true;
     }
 

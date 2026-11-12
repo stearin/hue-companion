@@ -389,10 +389,10 @@ public sealed partial class LightCard : UserControl
 
     private void LightToggle_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        // Explicitly toggle - the binding handles the state change
+        // Send an explicit user command; state bindings only display updates.
         if (ViewModel != null)
         {
-            ViewModel.IsOn = !ViewModel.IsOn;
+            ViewModel.ToggleCommand.Execute(null);
         }
         e.Handled = true;
     }

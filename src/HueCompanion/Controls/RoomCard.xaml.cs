@@ -395,7 +395,7 @@ public sealed partial class RoomCard : UserControl
     {
         if (ViewModel != null)
         {
-            ViewModel.IsOn = !ViewModel.IsOn;
+            ViewModel.ToggleCommand.Execute(null);
         }
         e.Handled = true;
     }
