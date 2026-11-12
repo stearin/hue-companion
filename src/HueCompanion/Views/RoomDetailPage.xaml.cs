@@ -80,6 +80,7 @@ public sealed partial class RoomDetailPage : Page
 
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
+        ToggleSwitchStateHelper.ApplyInitialState(RoomToggle);
         _isLoaded = true;
         ApplyThemeBackground();
         // Don't call UpdateHeaderActiveState here - let property changes from ViewModel drive updates
@@ -427,6 +428,7 @@ public sealed partial class RoomDetailPage : Page
             // New navigation with initial state - set colors immediately
             roomId = navParams.Id;
             groupType = navParams.Type;
+            ViewModel.IsOn = navParams.IsOn;
             SetInitialVisualState(navParams.IsOn, navParams.InitialColors);
         }
         else if (e.Parameter is NavigationTag navTag)
@@ -446,6 +448,7 @@ public sealed partial class RoomDetailPage : Page
 
         // Load room data
         await ViewModel.LoadRoomAsync(roomId, groupType);
+        ToggleSwitchStateHelper.ApplyInitialState(RoomToggle);
 
         // Set initial slider value (no animation for initial load)
         if (BrightnessSlider != null)

@@ -120,6 +120,7 @@ public sealed partial class LightCard : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _isLoaded = true;
+        ToggleSwitchStateHelper.ApplyInitialState(LightToggle);
         if (_currentViewModel == null && ViewModel != null)
         {
             _currentViewModel = ViewModel;

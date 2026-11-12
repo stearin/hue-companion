@@ -77,6 +77,7 @@ public sealed partial class LightDetailPage : Page
 
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
+        ToggleSwitchStateHelper.ApplyInitialState(LightToggle);
         _isLoaded = true;
         ApplyThemeBackground();
         UpdateHeaderActiveState();
@@ -293,6 +294,7 @@ public sealed partial class LightDetailPage : Page
         if (e.Parameter is Guid lightId)
         {
             await ViewModel.LoadLightAsync(lightId);
+            ToggleSwitchStateHelper.ApplyInitialState(LightToggle);
 
             // Set initial color picker value if color is available
             if (ViewModel.CurrentColor != null)

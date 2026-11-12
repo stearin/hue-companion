@@ -93,6 +93,7 @@ public sealed partial class RoomCard : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _isLoaded = true;
+        ToggleSwitchStateHelper.ApplyInitialState(RoomToggle);
         ApplyThemeBackground();
         UpdateActiveState();
     }

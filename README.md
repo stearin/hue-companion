@@ -210,6 +210,14 @@ dotnet build src/HueCompanion/HueCompanion.csproj
 dotnet run --project src/HueCompanion/HueCompanion.csproj
 ```
 
+### NuGet Package Versions
+
+All projects use NuGet Central Package Management. Edit
+[Directory.Packages.props](Directory.Packages.props) to change a package version
+for every project that references it. When adding a dependency, add its version
+there and a `<PackageReference Include="PackageName" />` without a `Version`
+attribute to each project that needs it.
+
 ### Build for Specific Architecture
 
 ```bash

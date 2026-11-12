@@ -276,17 +276,27 @@
                                 <VisualState x:Name="Disabled"/>
                             </VisualStateGroup>
                             <VisualStateGroup x:Name="ToggleStates">
+                                <!-- Animate changes, while allowing initialization to apply instantly. -->
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition GeneratedDuration="0:0:0.3">
+                                        <VisualTransition.GeneratedEasingFunction>
+                                            <CubicEase EasingMode="EaseOut"/>
+                                        </VisualTransition.GeneratedEasingFunction>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+                                <VisualState x:Name="Initializing"/>
                                 <VisualState x:Name="Dragging"/>
-                                <VisualState x:Name="Off"/>
+                                <VisualState x:Name="Off">
+                                    <VisualState.Setters>
+                                        <Setter Target="OnTrack.Opacity" Value="0"/>
+                                        <Setter Target="KnobTranslateTransform.X" Value="0"/>
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="On">
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="OnTrack" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.3"/>
-                                        <DoubleAnimation Storyboard.TargetName="KnobTranslateTransform" Storyboard.TargetProperty="X" To="20" Duration="0:0:0.3">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
+                                    <VisualState.Setters>
+                                        <Setter Target="OnTrack.Opacity" Value="1"/>
+                                        <Setter Target="KnobTranslateTransform.X" Value="20"/>
+                                    </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
