@@ -1,16 +1,6 @@
 namespace HueCompanion.Core.Models;
 
 /// <summary>
-/// Types of items that can be pinned to the dashboard.
-/// </summary>
-public enum PinnedItemType
-{
-    Room,
-    Zone,
-    Light
-}
-
-/// <summary>
 /// Represents an item pinned to the custom dashboard.
 /// </summary>
 public class PinnedItem

@@ -164,7 +164,7 @@ public sealed partial class AnimatedPreviewControl : UserControl
         }
     }
 
-    private static (byte R, byte G, byte B) HueColorToRgb(HueColor color)
+    private static RgbColor HueColorToRgb(HueColor color)
     {
         // Simplified CIE xy to RGB
         var x = color.X;
@@ -182,6 +182,6 @@ public sealed partial class AnimatedPreviewControl : UserControl
         g = Math.Max(0, Math.Min(1, g));
         b = Math.Max(0, Math.Min(1, b));
 
-        return ((byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
+        return new RgbColor((byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
     }
 }

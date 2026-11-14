@@ -45,7 +45,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     /// Event raised when a room is selected for detail view.
     /// Includes initial state for smooth visual transitions.
     /// </summary>
-    public event EventHandler<(Guid Id, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors)>? RoomSelected;
+    public event EventHandler<(Guid Id, LightGroupType Type, bool IsOn, List<RgbColor> Colors)>? RoomSelected;
 
     public DashboardViewModel(
         IMultiBridgeService multiBridgeService,
@@ -186,7 +186,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         await LoadRoomsAsync();
     }
 
-    private void OnRoomTapped(object? sender, (Guid Id, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors) args)
+    private void OnRoomTapped(object? sender, (Guid Id, LightGroupType Type, bool IsOn, List<RgbColor> Colors) args)
     {
         RoomSelected?.Invoke(this, args);
     }
@@ -223,7 +223,7 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
 {
     private readonly IHueBridgeService _bridgeService;
     private readonly RoomModel _room;
-    private IReadOnlyList<(byte R, byte G, byte B)>? _lightColorsCache;
+    private IReadOnlyList<RgbColor>? _lightColorsCache;
 
     public Guid RoomId => _room.Id;
 
@@ -266,7 +266,7 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
     /// Event raised when the room card is tapped (for navigation).
     /// Includes initial state for smooth visual transitions.
     /// </summary>
-    public event EventHandler<(Guid Id, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors)>? RoomTapped;
+    public event EventHandler<(Guid Id, LightGroupType Type, bool IsOn, List<RgbColor> Colors)>? RoomTapped;
 
     public int BrightnessPercent => (int)(Brightness * 100);
     public string BrightnessDisplayText => $"{BrightnessPercent}%";
@@ -286,11 +286,11 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
     /// Gets all unique light colors in the room as RGB values for gradient display.
     /// Cached and invalidated when light state changes.
     /// </summary>
-    public IReadOnlyList<(byte R, byte G, byte B)> LightColors
+    public IReadOnlyList<RgbColor> LightColors
     {
         get
         {
-            if (!IsOn) return Array.Empty<(byte R, byte G, byte B)>();
+            if (!IsOn) return Array.Empty<RgbColor>();
 
             if (_lightColorsCache == null)
             {
@@ -309,7 +309,7 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
     /// Gets the background color RGB values when the room is on.
     /// Returns null if no color is available or room is off.
     /// </summary>
-    public (byte R, byte G, byte B)? BackgroundColorRgb
+    public RgbColor? BackgroundColorRgb
     {
         get
         {
@@ -399,11 +399,11 @@ public partial class RoomCardViewModel : ObservableObject, IRoomCardViewModel
     }
 
     [RelayCommand]
-    private async Task SetColorAsync((byte R, byte G, byte B) rgb)
+    private async Task SetColorAsync(RgbColor rgb)
     {
         if (!SupportsColor) return;
 
-        var color = HueColor.FromRgb(rgb.R, rgb.G, rgb.B);
+        var color = HueColor.FromRgb(rgb);
 
         if (_room.GroupType == LightGroupType.Zone)
             await _bridgeService.SetZoneColorAsync(RoomId, color);

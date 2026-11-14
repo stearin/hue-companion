@@ -1,15 +1,6 @@
 namespace HueCompanion.Core.Models;
 
 /// <summary>
-/// Distinguishes between rooms and zones in the Hue system.
-/// </summary>
-public enum LightGroupType
-{
-    Room,
-    Zone
-}
-
-/// <summary>
 /// Represents a room/zone containing Hue lights.
 /// </summary>
 public class RoomModel
@@ -80,51 +71,4 @@ public class RoomModel
     /// The scenes available for this room.
     /// </summary>
     public List<SceneModel> Scenes { get; set; } = new();
-}
-
-/// <summary>
-/// Room archetype categories.
-/// </summary>
-public enum RoomArchetype
-{
-    LivingRoom,
-    Kitchen,
-    Dining,
-    Bedroom,
-    KidsBedroom,
-    Bathroom,
-    Nursery,
-    Recreation,
-    Office,
-    Gym,
-    Hallway,
-    Toilet,
-    FrontDoor,
-    Garage,
-    Terrace,
-    Garden,
-    Driveway,
-    Carport,
-    Home,
-    Downstairs,
-    Upstairs,
-    TopFloor,
-    Attic,
-    GuestRoom,
-    Staircase,
-    Lounge,
-    ManCave,
-    Computer,
-    Studio,
-    Music,
-    TV,
-    Reading,
-    Closet,
-    Storage,
-    LaundryRoom,
-    Balcony,
-    Porch,
-    Barbecue,
-    Pool,
-    Other
 }

@@ -79,7 +79,7 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets all unique light colors in the room as RGB values for gradient display.
     /// </summary>
-    public List<(byte R, byte G, byte B)> LightColors => IsOn
+    public List<RgbColor> LightColors => IsOn
         ? Lights.Where(l => l.IsOn && l.CurrentColorRgb.HasValue)
                 .Select(l => l.CurrentColorRgb!.Value)
                 .Distinct()
@@ -338,9 +338,9 @@ public partial class RoomDetailViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task SetRoomColorFromRgbAsync((byte R, byte G, byte B) rgb)
+    private async Task SetRoomColorFromRgbAsync(RgbColor rgb)
     {
-        var color = HueColor.FromRgb(rgb.R, rgb.G, rgb.B);
+        var color = HueColor.FromRgb(rgb);
 
         if (_bridgeService != null)
         {
@@ -685,10 +685,10 @@ public partial class LightItemViewModel : ObservableObject
     public double IconOpacity => IsOn ? 1.0 : 0.4;
 
     /// <summary>
-    /// Gets the current light color as RGB tuple for UI binding.
+    /// Gets the current light color as RGB color for UI binding.
     /// Returns null if light is off or has no color.
     /// </summary>
-    public (byte R, byte G, byte B)? CurrentColorRgb
+    public RgbColor? CurrentColorRgb
     {
         get
         {
@@ -800,11 +800,11 @@ public partial class LightItemViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task SetColorFromRgbAsync((byte R, byte G, byte B) rgb)
+    private async Task SetColorFromRgbAsync(RgbColor rgb)
     {
         if (!SupportsColor) return;
 
-        var color = HueColor.FromRgb(rgb.R, rgb.G, rgb.B);
+        var color = HueColor.FromRgb(rgb);
         CurrentColor = color;
 
         await _bridgeService.SetLightColorAsync(LightId, color);
@@ -851,9 +851,9 @@ public partial class SceneItemViewModel : ObservableObject
     private bool _isActive;
 
     /// <summary>
-    /// The palette colors as RGB tuples for UI binding.
+    /// The palette colors as RGB colors for UI binding.
     /// </summary>
-    public List<(byte R, byte G, byte B)> PaletteColorsRgb { get; }
+    public List<RgbColor> PaletteColorsRgb { get; }
 
     /// <summary>
     /// Whether this scene has palette colors to display.
@@ -885,7 +885,7 @@ public partial class SceneItemViewModel : ObservableObject
     /// </summary>
     public string Color4Hex => PaletteColorsRgb.Count > 3 ? ToHex(PaletteColorsRgb[3]) : string.Empty;
 
-    private static string ToHex((byte R, byte G, byte B) color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+    private static string ToHex(RgbColor color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 
     /// <summary>
     /// Event raised when the scene is activated.

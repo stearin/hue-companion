@@ -50,14 +50,19 @@ public class HueColor
     }
 
     /// <summary>
+    /// Creates a HueColor from an sRGB color.
+    /// </summary>
+    public static HueColor FromRgb(RgbColor color) => FromRgb(color.R, color.G, color.B);
+
+    /// <summary>
     /// Converts this HueColor to RGB using standard sRGB color space.
     /// </summary>
-    public (byte R, byte G, byte B) ToRgb(double brightness = 1.0)
+    public RgbColor ToRgb(double brightness = 1.0)
     {
         // Handle edge case where Y is 0
         if (Y <= 0)
         {
-            return (255, 255, 255); // Return white
+            return new RgbColor(255, 255, 255); // Return white
         }
 
         // Calculate XYZ from xy and brightness (Y component)
@@ -91,7 +96,7 @@ public class HueColor
         b = LinearToSrgb(b);
 
         // Convert to bytes
-        return (
+        return new RgbColor(
             (byte)Math.Round(r * 255),
             (byte)Math.Round(g * 255),
             (byte)Math.Round(b * 255)

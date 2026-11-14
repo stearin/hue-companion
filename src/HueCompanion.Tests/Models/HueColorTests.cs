@@ -61,7 +61,7 @@ public class HueColorTests
     public void FromRgb_RoundTripsApproximately(byte r, byte g, byte b)
     {
         // Arrange & Act
-        var hueColor = HueColor.FromRgb(r, g, b);
+        var hueColor = HueColor.FromRgb(new RgbColor(r, g, b));
         var (resultR, resultG, resultB) = hueColor.ToRgb(1.0);
 
         // Assert - RGB round-trip should be close (color space conversion has some loss)

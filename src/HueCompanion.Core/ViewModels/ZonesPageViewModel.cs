@@ -41,7 +41,7 @@ public partial class ZonesPageViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Event raised when a zone header is tapped for navigation.
     /// </summary>
-    public event EventHandler<(Guid ZoneId, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors)>? ZoneTapped;
+    public event EventHandler<(Guid ZoneId, LightGroupType Type, bool IsOn, List<RgbColor> Colors)>? ZoneTapped;
 
     public ZonesPageViewModel(IMultiBridgeService multiBridgeService)
     {
@@ -176,7 +176,7 @@ public partial class ZoneSectionViewModel : ObservableObject
     [ObservableProperty]
     private int _lightCount;
 
-    public event EventHandler<(Guid ZoneId, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors)>? ZoneTapped;
+    public event EventHandler<(Guid ZoneId, LightGroupType Type, bool IsOn, List<RgbColor> Colors)>? ZoneTapped;
 
     /// <summary>
     /// Creates a section from a zone model.
@@ -244,7 +244,7 @@ public class ZoneLightItemViewModel : ObservableObject
     public string? RoomName { get; }
     public bool IsOn { get; }
     public HueColor? CurrentColor { get; }
-    public (byte R, byte G, byte B)? ColorRgb { get; }
+    public RgbColor? ColorRgb { get; }
 
     public ZoneLightItemViewModel(LightModel light)
     {
@@ -257,8 +257,7 @@ public class ZoneLightItemViewModel : ObservableObject
 
         if (light.CurrentColor != null && light.IsOn)
         {
-            var (r, g, b) = light.CurrentColor.ToRgb(light.Brightness);
-            ColorRgb = (r, g, b);
+            ColorRgb = light.CurrentColor.ToRgb(light.Brightness);
         }
     }
 }

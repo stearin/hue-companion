@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using HueCompanion.Constants;
 using HueCompanion.Converters;
+using HueCompanion.Core.Models;
 using HueCompanion.Core.ViewModels;
 using HueCompanion.Utilities;
 using Windows.UI;
@@ -231,7 +232,7 @@ public sealed partial class RoomCard : UserControl
         var colors = ViewModel.LightColors;
         var borderBrush = colors.Count > 0
             ? BrushFactory.CreateDiagonalGradient(colors)
-            : BrushFactory.CreateDiagonalGradient(new[] { (_accentColor.R, _accentColor.G, _accentColor.B) });
+            : BrushFactory.CreateDiagonalGradient(new[] { new RgbColor(_accentColor.R, _accentColor.G, _accentColor.B) });
 
         // Set the brush FIRST, then animate opacity
         OutlineBorder.BorderBrush = borderBrush;

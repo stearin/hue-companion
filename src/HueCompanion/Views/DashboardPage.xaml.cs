@@ -43,7 +43,7 @@ public sealed partial class DashboardPage : Page
         (ViewModel as IDisposable)?.Dispose();
     }
 
-    private void OnRoomSelected(object? sender, (Guid Id, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors) args)
+    private void OnRoomSelected(object? sender, (Guid Id, LightGroupType Type, bool IsOn, List<RgbColor> Colors) args)
     {
         var navigationService = App.Services.GetRequiredService<INavigationService>();
         var navParams = new RoomNavigationParams(args.Type, args.Id, args.IsOn, args.Colors);

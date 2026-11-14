@@ -155,7 +155,7 @@ public sealed partial class RoomDetailPage : Page
         }
     }
 
-    private void UpdateBorderEffect(bool isActive, List<(byte R, byte G, byte B)> colors, bool instant = false)
+    private void UpdateBorderEffect(bool isActive, List<RgbColor> colors, bool instant = false)
     {
         if (!isActive)
         {
@@ -200,7 +200,7 @@ public sealed partial class RoomDetailPage : Page
         }
     }
 
-    private LinearGradientBrush CreateGradientBrush(List<(byte R, byte G, byte B)> colors)
+    private LinearGradientBrush CreateGradientBrush(List<RgbColor> colors)
     {
         var brush = new LinearGradientBrush();
         brush.StartPoint = new Windows.Foundation.Point(0, 0);
@@ -234,7 +234,7 @@ public sealed partial class RoomDetailPage : Page
         return brush;
     }
 
-    private void UpdateToggleColor(bool isActive, List<(byte R, byte G, byte B)> colors, bool instant = false)
+    private void UpdateToggleColor(bool isActive, List<RgbColor> colors, bool instant = false)
     {
         if (RoomToggle == null) return;
 
@@ -260,7 +260,7 @@ public sealed partial class RoomDetailPage : Page
         _currentToggleColor = targetColor;
     }
 
-    private void UpdateRoomIconColor(bool isActive, List<(byte R, byte G, byte B)> colors, bool instant = false)
+    private void UpdateRoomIconColor(bool isActive, List<RgbColor> colors, bool instant = false)
     {
         if (RoomIcon == null) return;
 
@@ -292,7 +292,7 @@ public sealed partial class RoomDetailPage : Page
         _currentRoomIconColor = targetColor;
     }
 
-    private void UpdateBrightnessIconColor(bool isActive, List<(byte R, byte G, byte B)> colors, bool instant = false)
+    private void UpdateBrightnessIconColor(bool isActive, List<RgbColor> colors, bool instant = false)
     {
         if (BrightnessIcon == null) return;
 
@@ -324,7 +324,7 @@ public sealed partial class RoomDetailPage : Page
         _currentBrightnessIconColor = targetColor;
     }
 
-    private void UpdateColorButtonColor(bool isActive, List<(byte R, byte G, byte B)> colors, bool instant = false)
+    private void UpdateColorButtonColor(bool isActive, List<RgbColor> colors, bool instant = false)
     {
         if (ColorButtonContent == null) return;
 
@@ -470,7 +470,7 @@ public sealed partial class RoomDetailPage : Page
     /// Sets the initial visual state immediately without animation.
     /// Used to preserve color continuity during page transitions.
     /// </summary>
-    private void SetInitialVisualState(bool isOn, List<(byte R, byte G, byte B)> colors)
+    private void SetInitialVisualState(bool isOn, List<RgbColor> colors)
     {
         // Enable instant mode for subsequent updates during load
         _useInstantColorUpdate = true;
@@ -827,7 +827,7 @@ public sealed partial class RoomDetailPage : Page
 
     private void ColorFlyout_ColorChanged(object sender, Color color)
     {
-        ViewModel.SetRoomColorFromRgbCommand.Execute((color.R, color.G, color.B));
+        ViewModel.SetRoomColorFromRgbCommand.Execute(new RgbColor(color.R, color.G, color.B));
     }
 
     private void OnSceneActivatedForPulse(object? sender, Guid sceneId)

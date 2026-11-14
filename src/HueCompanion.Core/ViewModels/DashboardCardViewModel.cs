@@ -102,11 +102,11 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
     /// <summary>
     /// Gets light colors for gradient display.
     /// </summary>
-    public IReadOnlyList<(byte R, byte G, byte B)> LightColors
+    public IReadOnlyList<RgbColor> LightColors
     {
         get
         {
-            if (!IsOn) return new List<(byte R, byte G, byte B)>();
+            if (!IsOn) return new List<RgbColor>();
 
             if (_room != null)
             {
@@ -118,14 +118,14 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
             }
             else if (_light?.CurrentColor != null)
             {
-                return new List<(byte R, byte G, byte B)> { _light.CurrentColor.ToRgb(1.0) };
+                return new List<RgbColor> { _light.CurrentColor.ToRgb(1.0) };
             }
 
-            return new List<(byte R, byte G, byte B)>();
+            return new List<RgbColor>();
         }
     }
 
-    public (byte R, byte G, byte B)? BackgroundColorRgb
+    public RgbColor? BackgroundColorRgb
     {
         get
         {
@@ -266,11 +266,11 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
     }
 
     [RelayCommand]
-    private async Task SetColorAsync((byte R, byte G, byte B) rgb)
+    private async Task SetColorAsync(RgbColor rgb)
     {
         if (!SupportsColor) return;
 
-        var color = HueColor.FromRgb(rgb.R, rgb.G, rgb.B);
+        var color = HueColor.FromRgb(rgb);
 
         var bridgeService = GetBridgeService();
         if (bridgeService != null)
@@ -458,7 +458,7 @@ public partial class DashboardCardViewModel : ObservableObject, IRoomCardViewMod
         }
     }
 
-    private static string ToHex((byte R, byte G, byte B) color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+    private static string ToHex(RgbColor color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 
     /// <summary>
     /// Called when a light state change event is received.

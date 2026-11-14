@@ -348,7 +348,7 @@ public sealed partial class LightCard : UserControl
 
     private void ColorFlyout_ColorChanged(object sender, Color color)
     {
-        ViewModel?.SetColorFromRgbCommand.Execute((color.R, color.G, color.B));
+        ViewModel?.SetColorFromRgbCommand.Execute(new RgbColor(color.R, color.G, color.B));
     }
 
     private void CardRoot_Tapped(object sender, TappedRoutedEventArgs e)

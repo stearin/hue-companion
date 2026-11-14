@@ -1,3 +1,4 @@
+using HueCompanion.Core.Models;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
@@ -11,14 +12,14 @@ namespace HueCompanion.Utilities;
 public static class BrushFactory
 {
     /// <summary>
-    /// Creates a LinearGradientBrush from a list of RGB color tuples.
+    /// Creates a LinearGradientBrush from a list of RGB colors.
     /// </summary>
-    /// <param name="colors">List of RGB color tuples.</param>
+    /// <param name="colors">List of RGB colors.</param>
     /// <param name="startPoint">Gradient start point (default: top-left 0,0).</param>
     /// <param name="endPoint">Gradient end point (default: bottom-right 1,1).</param>
     /// <returns>A LinearGradientBrush with evenly distributed color stops.</returns>
     public static LinearGradientBrush CreateGradient(
-        IReadOnlyList<(byte r, byte g, byte b)> colors,
+        IReadOnlyList<RgbColor> colors,
         Point? startPoint = null,
         Point? endPoint = null)
     {
@@ -61,7 +62,7 @@ public static class BrushFactory
     /// <summary>
     /// Creates a horizontal LinearGradientBrush (left to right).
     /// </summary>
-    public static LinearGradientBrush CreateHorizontalGradient(IReadOnlyList<(byte r, byte g, byte b)> colors)
+    public static LinearGradientBrush CreateHorizontalGradient(IReadOnlyList<RgbColor> colors)
     {
         return CreateGradient(colors, new Point(0, 0), new Point(1, 0));
     }
@@ -69,17 +70,17 @@ public static class BrushFactory
     /// <summary>
     /// Creates a diagonal LinearGradientBrush (top-left to bottom-right).
     /// </summary>
-    public static LinearGradientBrush CreateDiagonalGradient(IReadOnlyList<(byte r, byte g, byte b)> colors)
+    public static LinearGradientBrush CreateDiagonalGradient(IReadOnlyList<RgbColor> colors)
     {
         return CreateGradient(colors, new Point(0, 0), new Point(1, 1));
     }
 
     /// <summary>
-    /// Creates a solid color brush from an RGB tuple.
+    /// Creates a solid color brush from an RGB color.
     /// </summary>
-    public static SolidColorBrush CreateSolid((byte r, byte g, byte b) color)
+    public static SolidColorBrush CreateSolid(RgbColor color)
     {
-        return new SolidColorBrush(Color.FromArgb(255, color.r, color.g, color.b));
+        return new SolidColorBrush(Color.FromArgb(255, color.R, color.G, color.B));
     }
 
     /// <summary>
@@ -96,7 +97,7 @@ public static class BrushFactory
     /// </summary>
     /// <param name="colors">Light colors to blend. Uses the first/dominant color.</param>
     /// <param name="alpha">Opacity of the color at the center (0-255). Default ~20 for 5-8% feel.</param>
-    public static RadialGradientBrush CreateRadialAmbientBrush(IReadOnlyList<(byte r, byte g, byte b)> colors, byte alpha = 20)
+    public static RadialGradientBrush CreateRadialAmbientBrush(IReadOnlyList<RgbColor> colors, byte alpha = 20)
     {
         // Use first color as dominant, or gray fallback
         byte r = 128, g = 128, b = 128;

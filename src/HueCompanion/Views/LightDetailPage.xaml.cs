@@ -1,3 +1,4 @@
+using HueCompanion.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -44,7 +45,7 @@ public sealed partial class LightDetailPage : Page
     private DispatcherTimer? _powerOnBrightnessDebounceTimer;
     private double _pendingBrightness;
     private int _pendingTemperature;
-    private (byte R, byte G, byte B) _pendingColor;
+    private RgbColor _pendingColor;
     private double _pendingPowerOnBrightness;
     private bool _isUpdatingPowerOnPreset;
 
@@ -362,7 +363,7 @@ public sealed partial class LightDetailPage : Page
 
         // Debounce color changes
         var color = args.NewColor;
-        _pendingColor = (color.R, color.G, color.B);
+        _pendingColor = new RgbColor(color.R, color.G, color.B);
 
         if (_colorDebounceTimer == null)
         {

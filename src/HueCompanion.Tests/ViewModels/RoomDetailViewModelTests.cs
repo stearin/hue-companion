@@ -174,6 +174,29 @@ public class RoomDetailViewModelTests
         bridge.Verify(b => b.SetLightOnAsync(It.IsAny<Guid>(), It.IsAny<bool>(), null), Times.Never);
     }
 
+    [Fact]
+    public async Task SetColorFromRgbCommand_WithBoxedRgbColor_UpdatesLightAndBridge()
+    {
+        var bridge = new Mock<IHueBridgeService>();
+        var id = Guid.NewGuid();
+        var vm = new LightItemViewModel(new LightModel
+        {
+            Id = id, SupportsColor = true
+        }, bridge.Object);
+        var expected = HueColor.FromRgb(255, 0, 0);
+
+        // UI command bindings pass the color through the object-based command API.
+        object parameter = new RgbColor(255, 0, 0);
+        await vm.SetColorFromRgbCommand.ExecuteAsync(parameter);
+
+        vm.CurrentColor.Should().NotBeNull();
+        vm.CurrentColor!.X.Should().Be(expected.X);
+        vm.CurrentColor.Y.Should().Be(expected.Y);
+        bridge.Verify(b => b.SetLightColorAsync(id,
+            It.Is<HueColor>(c => c.X == expected.X && c.Y == expected.Y), null), Times.Once);
+        bridge.VerifyNoOtherCalls();
+    }
+
     private static RoomModel CreateGroup(LightGroupType groupType, bool firstLightOn) => new()
     {
         Id = Guid.NewGuid(),

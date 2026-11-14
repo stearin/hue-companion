@@ -43,7 +43,7 @@ public sealed partial class ZonesPage : Page
         SubtitleText.Text = count == 1 ? "1 zone" : $"{count} zones";
     }
 
-    private void OnZoneTapped(object? sender, (Guid Id, LightGroupType Type, bool IsOn, List<(byte R, byte G, byte B)> Colors) args)
+    private void OnZoneTapped(object? sender, (Guid Id, LightGroupType Type, bool IsOn, List<RgbColor> Colors) args)
     {
         var navigationService = App.Services.GetRequiredService<INavigationService>();
         var navParams = new RoomNavigationParams(args.Type, args.Id, args.IsOn, args.Colors);
@@ -57,7 +57,7 @@ public sealed partial class ZonesPage : Page
         return count == 1 ? "1 light" : $"{count} lights";
     }
 
-    public static Windows.UI.Color GetLightDotColor(bool isOn, (byte R, byte G, byte B)? colorRgb)
+    public static Windows.UI.Color GetLightDotColor(bool isOn, RgbColor? colorRgb)
     {
         if (!isOn)
             return Windows.UI.Color.FromArgb(80, 255, 255, 255);

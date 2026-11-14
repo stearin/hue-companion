@@ -73,9 +73,9 @@ public static class ColorConverter
         else
             (r, g, b) = (c, 0, x);
 
-        r = (r + m);
-        g = (g + m);
-        b = (b + m);
+        r += m;
+        g += m;
+        b += m;
 
         // Convert RGB to XY
         return RgbToXy(r, g, b);
@@ -86,63 +86,63 @@ public static class ColorConverter
     /// </summary>
     internal static (double R, double G, double B) XyToRgb(HueColor xy, double brightness)
     {
-        var x = xy.X;
-        var y = xy.Y;
+        var chromaticityX = xy.X;
+        var chromaticityY = xy.Y;
 
-        if (y <= 0) return (1.0, 1.0, 1.0); // White fallback for degenerate input
+        if (chromaticityY <= 0) return (1.0, 1.0, 1.0); // White fallback for degenerate input
 
-        var z = 1.0 - x - y;
+        var chromaticityZ = 1.0 - chromaticityX - chromaticityY;
 
-        var Y = brightness;
-        var X = (Y / y) * x;
-        var Z = (Y / y) * z;
+        var tristimulusY = brightness;
+        var tristimulusX = (tristimulusY / chromaticityY) * chromaticityX;
+        var tristimulusZ = (tristimulusY / chromaticityY) * chromaticityZ;
 
-        // Convert XYZ to RGB using sRGB D65 matrix
-        var r = X * 3.2404542 - Y * 1.5371385 - Z * 0.4985314;
-        var g = -X * 0.9692660 + Y * 1.8760108 + Z * 0.0415560;
-        var b = X * 0.0556434 - Y * 0.2040259 + Z * 1.0572252;
+        // Convert XYZ to linear RGB using sRGB D65 matrix
+        var linearRed = tristimulusX * 3.2404542 - tristimulusY * 1.5371385 - tristimulusZ * 0.4985314;
+        var linearGreen = -tristimulusX * 0.9692660 + tristimulusY * 1.8760108 + tristimulusZ * 0.0415560;
+        var linearBlue = tristimulusX * 0.0556434 - tristimulusY * 0.2040259 + tristimulusZ * 1.0572252;
 
         // Apply gamma correction
-        r = ApplyGamma(r);
-        g = ApplyGamma(g);
-        b = ApplyGamma(b);
+        var srgbRed = ApplyGamma(linearRed);
+        var srgbGreen = ApplyGamma(linearGreen);
+        var srgbBlue = ApplyGamma(linearBlue);
 
         // Clamp to [0, 1]
-        r = Math.Clamp(r, 0, 1);
-        g = Math.Clamp(g, 0, 1);
-        b = Math.Clamp(b, 0, 1);
+        srgbRed = Math.Clamp(srgbRed, 0, 1);
+        srgbGreen = Math.Clamp(srgbGreen, 0, 1);
+        srgbBlue = Math.Clamp(srgbBlue, 0, 1);
 
-        return (r, g, b);
+        return (srgbRed, srgbGreen, srgbBlue);
     }
 
     /// <summary>
     /// Converts RGB to XY color.
     /// </summary>
-    private static (HueColor Xy, double Brightness) RgbToXy(double r, double g, double b)
+    private static (HueColor Xy, double Brightness) RgbToXy(double srgbRed, double srgbGreen, double srgbBlue)
     {
         // Apply inverse gamma correction
-        r = RemoveGamma(r);
-        g = RemoveGamma(g);
-        b = RemoveGamma(b);
+        var linearRed = RemoveGamma(srgbRed);
+        var linearGreen = RemoveGamma(srgbGreen);
+        var linearBlue = RemoveGamma(srgbBlue);
 
-        // Convert RGB to XYZ using sRGB D65 matrix
-        var X = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
-        var Y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
-        var Z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
+        // Convert linear RGB to XYZ using sRGB D65 matrix
+        var tristimulusX = linearRed * 0.4124564 + linearGreen * 0.3575761 + linearBlue * 0.1804375;
+        var tristimulusY = linearRed * 0.2126729 + linearGreen * 0.7151522 + linearBlue * 0.0721750;
+        var tristimulusZ = linearRed * 0.0193339 + linearGreen * 0.1191920 + linearBlue * 0.9503041;
 
         // Convert XYZ to xy
-        var sum = X + Y + Z;
-        if (sum == 0)
+        var tristimulusSum = tristimulusX + tristimulusY + tristimulusZ;
+        if (tristimulusSum == 0)
             return (HueColors.WarmWhite, 0);
 
-        var x = X / sum;
-        var y = Y / sum;
+        var chromaticityX = tristimulusX / tristimulusSum;
+        var chromaticityY = tristimulusY / tristimulusSum;
 
-        // Clamp to valid gamut
-        x = Math.Clamp(x, 0, 1);
-        y = Math.Clamp(y, 0, 1);
+        // Clamp chromaticity coordinates to [0, 1]
+        chromaticityX = Math.Clamp(chromaticityX, 0, 1);
+        chromaticityY = Math.Clamp(chromaticityY, 0, 1);
 
-        return (new HueColor(x, y), Y);
+        return (new HueColor(chromaticityX, chromaticityY), tristimulusY);
     }
 
     /// <summary>

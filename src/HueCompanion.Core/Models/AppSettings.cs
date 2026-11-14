@@ -61,24 +61,3 @@ public class AppSettings
     /// </summary>
     public Dictionary<string, List<SceneActivation>> SceneRecents { get; set; } = new();
 }
-
-/// <summary>
-/// Available application themes.
-/// </summary>
-public enum AppTheme
-{
-    /// <summary>
-    /// Follow system theme.
-    /// </summary>
-    System,
-
-    /// <summary>
-    /// Always use light theme.
-    /// </summary>
-    Light,
-
-    /// <summary>
-    /// Always use dark theme.
-    /// </summary>
-    Dark
-}

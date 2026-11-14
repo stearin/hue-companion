@@ -15,7 +15,7 @@ public record RoomNavigationParams(
     LightGroupType Type,
     Guid Id,
     bool IsOn,
-    List<(byte R, byte G, byte B)> InitialColors);
+    List<RgbColor> InitialColors);
 
 /// <summary>
 /// Navigation parameter for navigating to ScenesPage with room context.

@@ -205,9 +205,9 @@ public partial class LightDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task SetColorFromRgbAsync((byte R, byte G, byte B) rgb)
+    private async Task SetColorFromRgbAsync(RgbColor rgb)
     {
-        var color = HueColor.FromRgb(rgb.R, rgb.G, rgb.B);
+        var color = HueColor.FromRgb(rgb);
         await SetColorAsync(color);
     }
 
