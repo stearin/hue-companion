@@ -18,8 +18,10 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private AppTheme _selectedTheme;
 
-    [ObservableProperty]
-    private string _appVersion = "1.0.0";
+    /// <summary>
+    /// Gets the application host's version, including any prerelease suffix.
+    /// </summary>
+    public string AppVersion { get; }
 
     [ObservableProperty]
     private int _bridgeCount;
@@ -92,8 +94,10 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         ISettingsService settingsService,
         IMultiBridgeService multiBridgeService,
         IBridgeDiscoveryService discoveryService,
+        string appVersion,
         IHotkeyService? hotkeyService = null)
     {
+        AppVersion = appVersion;
         _settingsService = settingsService;
         _multiBridgeService = multiBridgeService;
         _hotkeyService = hotkeyService;
@@ -130,14 +134,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
 
         // Update status from service
         UpdateHotkeyStatus();
-
-        // Get app version from assembly
-        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-        var version = assembly.GetName().Version;
-        if (version != null)
-        {
-            AppVersion = $"{version.Major}.{version.Minor}.{version.Build}";
-        }
 
         // Reload bridge management
         BridgeManagement?.LoadBridges();

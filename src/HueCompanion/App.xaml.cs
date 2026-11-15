@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using CommunityToolkit.Mvvm.Messaging;
 using HueCompanion.Core.Services;
+using System.Reflection;
 using HueCompanion.Core.Services.Interfaces;
 using HueCompanion.Core.ViewModels;
 using HueCompanion.Helpers;
@@ -14,6 +15,11 @@ namespace HueCompanion;
 /// </summary>
 public partial class App : Application
 {
+    internal static string AppVersion { get; } =
+        typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? typeof(App).Assembly.GetName().Version?.ToString()
+        ?? "Unknown";
+
     /// <summary>
     /// Gets the service provider for dependency injection.
     /// </summary>
@@ -176,7 +182,12 @@ public partial class App : Application
         services.AddTransient<CustomDashboardViewModel>();
         services.AddTransient<RoomDetailViewModel>();
         services.AddTransient<LightDetailViewModel>();
-        services.AddTransient<SettingsViewModel>();
+        services.AddTransient(sp => new SettingsViewModel(
+            sp.GetRequiredService<ISettingsService>(),
+            sp.GetRequiredService<IMultiBridgeService>(),
+            sp.GetRequiredService<IBridgeDiscoveryService>(),
+            AppVersion,
+            sp.GetService<IHotkeyService>()));
         services.AddTransient<SetupViewModel>();
         services.AddTransient<ScenesViewModel>();
         services.AddTransient<SceneLibraryViewModel>();

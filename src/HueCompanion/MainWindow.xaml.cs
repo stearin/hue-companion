@@ -17,6 +17,7 @@ using WinRT.Interop;
 using Windows.UI;
 using VirtualKey = Windows.System.VirtualKey;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -315,16 +316,10 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private string GetAppTitle()
+    private static string GetAppTitle()
     {
-        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-        var titleAttr = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyTitleAttribute>(assembly);
-        var infoVersion = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(assembly);
-
-        var title = titleAttr?.Title ?? "Hue Companion";
-        var version = infoVersion?.InformationalVersion ?? "0.0.0";
-
-        return $"{title} - {version}";
+        var title = typeof(App).Assembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title ?? "Hue Companion";
+        return $"{title} - {App.AppVersion}";
     }
 
     private void SetupTitleBar()
